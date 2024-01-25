@@ -51,4 +51,11 @@ PlayListModel.belongsTo(UserModel, { onDelete: 'CASCADE' });
 module.exports = {
   sequelize,
   UserModel: sequelize.models.users,
+  GenreModel: sequelize.models.genres,
+  SongModel: sequelize.models.songs,
+  SongPlaylistModel: sequelize.models.song_playlist,
+  PlayListModel: sequelize.models.playlists,
+  FollowUser: sequelize.models.follow_users,
+  FollowPlaylistModel: sequelize.models.follow_playlists,
+  UserLikeSongModel: sequelize.models.userlikesongs,
 };
