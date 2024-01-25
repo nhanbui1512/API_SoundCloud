@@ -13,7 +13,7 @@ app.use(express.json());
 
 app.use(
   express.urlencoded({
-    extended: true,
+    extended: false,
   }),
 );
 
@@ -40,6 +40,8 @@ app.use(express.static(path.join(__dirname, '/public')));
 route(app);
 
 app.use(errorHandle);
+
+/// login with gg
 
 app.listen(3000, () => {
   console.log('app is listening on http://localhost:3000');
