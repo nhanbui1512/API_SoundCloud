@@ -1,5 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { formatTime } = require('../until/time');
+const dotenv = require('dotenv');
+dotenv.config();
 
 const Song = (sequelize) => {
   return sequelize.define('songs', {
@@ -25,13 +27,29 @@ const Song = (sequelize) => {
     },
     thumbNail: {
       type: DataTypes.STRING,
+      get() {
+        const filename = this.getDataValue('thumbNail');
+        return `${process.env.domain}/uploads/images/${filename}`;
+      },
     },
     linkFile: {
       type: DataTypes.STRING,
+      get() {
+        const filename = this.getDataValue('linkFile');
+        return `${process.env.domain}/uploads/audios/${filename}`;
+      },
     },
     artistName: {
       type: DataTypes.STRING,
     },
+    createAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    updateAt: {
+      type: DataTypes.DATE,
+    },
+
     durationTime: {
       type: DataTypes.VIRTUAL,
       get() {
@@ -40,12 +58,13 @@ const Song = (sequelize) => {
         return `${formatedTime.minute}:${formatedTime.second}`;
       },
     },
-    createAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-    updateAt: {
-      type: DataTypes.DATE,
+    createAtTimeFormat: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        const time = this.getDataValue('createAt');
+        const formatedTime = formatTime(time);
+        return `${formatedTime.hour}:${formatedTime.minute} ${formatedTime.day}/${formatedTime.month}/${formatedTime.year}`;
+      },
     },
   });
 };

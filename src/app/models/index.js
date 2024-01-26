@@ -30,7 +30,7 @@ const SongPlaylistModel = SongPlaylist(sequelize);
 UserModel.hasMany(SongModel, { onDelete: 'CASCADE' }); // USER VS SONG
 SongModel.belongsTo(UserModel, { onDelete: 'CASCADE' });
 
-UserModel.belongsToMany(SongModel, { through: UserLikeSongModel }); // USER - USER_LIKE_SONG - ROOM
+UserModel.belongsToMany(SongModel, { through: UserLikeSongModel }); // USER - USER_LIKE_SONG - SONg
 SongModel.belongsToMany(UserModel, { through: UserLikeSongModel });
 
 FollowUserModel.belongsTo(UserModel, { as: 'follower', foreignKey: 'user_id' }); // USER FOLLOW USER
@@ -55,7 +55,7 @@ module.exports = {
   SongModel: sequelize.models.songs,
   SongPlaylistModel: sequelize.models.song_playlist,
   PlayListModel: sequelize.models.playlists,
-  FollowUser: sequelize.models.follow_users,
+  FollowUserModel: sequelize.models.follow_users,
   FollowPlaylistModel: sequelize.models.follow_playlists,
   UserLikeSongModel: sequelize.models.userlikesongs,
 };

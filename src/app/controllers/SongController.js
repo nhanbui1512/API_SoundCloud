@@ -1,8 +1,15 @@
 const mp3Duration = require('mp3-duration');
-const { SongModel, UserModel, UserLikeSongModel } = require('../models');
+const {
+  SongModel,
+  UserModel,
+  UserLikeSongModel,
+  FollowUserModel,
+  sequelize,
+} = require('../models');
+const { Sequelize } = require('sequelize');
+
 const ValidationError = require('../errors/ValidationError');
 const NotfoundError = require('../errors/NotFoundError');
-const Song = require('../models/songModel');
 
 class SongController {
   async createSong(req, response) {
@@ -56,6 +63,12 @@ class SongController {
   }
 
   async getSongs(req, response) {
+    const currentPage = req.query.page || 1;
+    var itemsPerPage = req.query.per_page || 10; // Số bản ghi trên mỗi trang
+    if (itemsPerPage > 100) itemsPerPage = 100;
+
+    const offset = (currentPage - 1) * itemsPerPage; // Tính OFFSET
+
     const page = Number(req.query.page);
     const perPage = Number(req.query.per_page);
     const erros = [];
@@ -64,16 +77,27 @@ class SongController {
     if (!perPage) erros.push({ perPage: 'per_page not validation' });
     if (erros.length > 0) throw new ValidationError(erros);
 
-    const songs = await SongModel.findAll({
-      include: {
-        model: UserModel,
-        attributes: {
-          exclude: ['password'],
-        },
-      },
-    });
+    try {
+      const songs = await SongModel.findAll({
+        include: [
+          {
+            model: UserModel,
+            attributes: {
+              exclude: ['password'],
+            },
+          },
+        ],
 
-    return response.status(200).json({ data: songs });
+        limit: Number(itemsPerPage),
+        offset: offset,
+        order: [['createAt', 'DESC']],
+      });
+
+      return response.status(200).json({ data: songs });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
   async LikeSong(req, response) {
