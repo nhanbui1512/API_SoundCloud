@@ -1,4 +1,6 @@
 const { DataTypes } = require('sequelize');
+const dotenv = require('dotenv');
+dotenv.config();
 
 const User = (sequelize) => {
   return sequelize.define('users', {
@@ -34,6 +36,11 @@ const User = (sequelize) => {
     },
     avatar: {
       type: DataTypes.STRING,
+      get() {
+        const fileName = this.getDataValue('avatar');
+        if (fileName === null) return fileName;
+        return `${process.env.domain}/uploads/images/${fileName}`;
+      },
     },
     createAt: {
       type: DataTypes.DATE,
