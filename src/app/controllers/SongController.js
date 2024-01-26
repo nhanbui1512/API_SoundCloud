@@ -5,37 +5,43 @@ const {
   UserLikeSongModel,
   FollowUserModel,
   sequelize,
+  GenreModel,
 } = require('../models');
-const { Sequelize } = require('sequelize');
 
 const ValidationError = require('../errors/ValidationError');
 const NotfoundError = require('../errors/NotFoundError');
 
 class SongController {
-
   async createSong(req, response) {
     const name = req.body.name;
     const description = req.body.description;
     const artistName = req.body.artistName;
+    const genreId = Number(req.body.genreId);
+
     const errors = [];
 
     // fake iduser
 
-    const userid = 1;
+    const userid = req.userId;
 
     if (!name) errors.push({ name: 'name must be attached' });
     if (!description) errors.push({ description: 'description must be attached' });
     if (!artistName) errors.push({ artistName: 'artistName must be attached' });
+    if (!genreId) errors.push({ genreId: 'genreId is not validation' });
 
     if (errors.length > 0) throw new ValidationError(errors);
     if (!req.files.song)
       throw new ValidationError({
         song: 'file song must be attached',
       });
+
     if (!req.files.thumbNail)
       throw new ValidationError({
         thumbNail: 'file thumbnail must be attached',
       });
+
+    const genre = await GenreModel.findByPk(genreId);
+    if (genre === null) throw new NotfoundError({ genere: 'Not found' });
 
     const user = await UserModel.findByPk(userid);
 
@@ -59,6 +65,7 @@ class SongController {
       });
 
       await user.addSong(newSong);
+      await genre.addSong(newSong);
       return response.status(200).json({ isSuccess: true, data: newSong });
     });
   }
@@ -94,7 +101,28 @@ class SongController {
         order: [['createAt', 'DESC']],
       });
 
-      return response.status(200).json({ data: songs });
+      const ids = songs.map((song) => {
+        return song.id;
+      });
+
+      var likes = await UserLikeSongModel.findAll({
+        where: {
+          songId: ids,
+        },
+      });
+
+      const result = songs.map((song) => {
+        song = song.toJSON();
+        var count = likes.reduce((likeCount, like) => {
+          if (like.songId == song.id) return likeCount + 1;
+          else return likeCount;
+        }, 0);
+
+        song.likeCount = count;
+        return song;
+      });
+
+      return response.status(200).json({ data: result });
     } catch (error) {
       console.log(error);
       throw error;

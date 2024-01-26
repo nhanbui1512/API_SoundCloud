@@ -1,40 +1,26 @@
-const { where } = require('sequelize')
-const { FollowUser, UserModel, UserLikeSongModel, SongModel } = require('../models')
+const { where } = require('sequelize');
+const { FollowUserModel, UserModel, UserLikeSongModel, SongModel } = require('../models');
 
 class Follower {
-    
-    async getMyFollowers(req, response, next) {
-        // const userId = req.userId
+  async getMyFollowers(req, response, next) {
+    const userFollowers = await FollowUserModel.findAll({
+      where: {
+        user_id: 1,
+      },
+      include: {
+        model: UserModel,
+        as: 'following',
+        attributes: {
+          exclude: ['password'],
+        },
+      },
+    });
 
-        // const userFollowers = await FollowUser.findAll(
-        //     {
-        //         where: {
-        //             user_id: userId
-        //         },
-        //         include: {
-        //             model: UserModel,
-        //             as: 'following',
-        //             attributes: {
-        //                 exclude: ['password']
-        //             }
-        //         }
-        //     }
-        // )
-
-        const userLikeSong = await SongModel.findAll({
-            include: [
-                {
-                    model: UserModel,
-                    as: 'user'
-                }
-            ]
-        })
-
-        return response.status(200).json({
-            result: true,
-            data: userLikeSong
-        })
-    }
+    return response.status(200).json({
+      result: true,
+      data: userFollowers,
+    });
+  }
 }
 
-module.exports = new Follower()
+module.exports = new Follower();
