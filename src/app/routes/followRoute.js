@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.get('/followers', isLoginMiddleware, FollowController.getMyFollowers);
 router.get('/playlists', isLoginMiddleware, FollowController.MyPlaylists);
-router.post('/followplaylist', isLoginMiddleware, FollowController.followingPlaylist);
+router.post('/playlists', isLoginMiddleware, FollowController.followingPlaylist);
+router.delete('/playlists', isLoginMiddleware, FollowController.Unfollowingplaylist);
 
 module.exports = router;

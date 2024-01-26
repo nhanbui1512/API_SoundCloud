@@ -1,12 +1,5 @@
 const ValidationError = require('../errors/ValidationError');
-const {
-  FollowUserModel,
-  UserModel,
-  UserLikeSongModel,
-  SongModel,
-  PlayListModel,
-  FollowPlaylistModel,
-} = require('../models');
+const { FollowUserModel, UserModel, PlayListModel, FollowPlaylistModel } = require('../models');
 
 class Follower {
   async getMyFollowers(req, response) {
@@ -57,7 +50,7 @@ class Follower {
   async followingPlaylist(req, response) {
     const userId = req.userId;
     const playlistId = req.query.idPlaylist;
-    if (!playlistId) throw new ValidationError({ message: 'Playlist_ID is not validation' });
+    if (!playlistId) throw new ValidationError({ message: 'IdPlaylist is not validation' });
 
     const user = await UserModel.findByPk(userId, {
       attributes: {
@@ -91,7 +84,7 @@ class Follower {
   async Unfollowingplaylist(req, response) {
     const userId = req.userId;
     const playlistId = req.query.idPlaylist;
-    if (!playlistId) throw new ValidationError({ idPlaylist: 'idPlaylist is not validation' });
+    if (!playlistId) throw new ValidationError({ idPlaylist: 'IdPlaylist is not validation' });
 
     await FollowPlaylistModel.destroy({
       where: {
@@ -102,7 +95,7 @@ class Follower {
 
     return response.status(200).json({
       isSuccess: true,
-      message: 'Unlike the song successfully',
+      message: 'Unlike the playlist successfully',
     });
   }
 }
