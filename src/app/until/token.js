@@ -6,13 +6,13 @@ module.exports = {
   GenerateAccpectToken(user) {
     return jwt.sign(
       {
-        userId: user.userId,
+        userId: user.id,
         userName: user.userName,
         email: user.email,
       },
       process.env.JWT_PASS,
       {
-        expiresIn: '30d',
+        expiresIn: '15d',
       },
     );
   },

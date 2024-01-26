@@ -1,6 +1,7 @@
 const express = require('express');
 const SongController = require('../controllers/SongController');
 const multer = require('multer');
+const isLoginMiddleWare = require('../middlewares/isLoginMiddleware');
 
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -24,6 +25,7 @@ const router = express.Router();
 
 router.post(
   '/create',
+  isLoginMiddleWare,
   upload.fields([
     { name: 'song', maxCount: 1 },
     { name: 'thumbNail', maxCount: 1 },
