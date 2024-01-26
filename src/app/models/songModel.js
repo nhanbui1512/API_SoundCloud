@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize');
+const { formatTime } = require('../until/time');
 
 const Song = (sequelize) => {
   return sequelize.define('songs', {
@@ -30,6 +31,14 @@ const Song = (sequelize) => {
     },
     artistName: {
       type: DataTypes.STRING,
+    },
+    durationTime: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        const duration = this.getDataValue('duration');
+        const formatedTime = formatTime(duration * 1000);
+        return `${formatedTime.minute}:${formatedTime.second}`;
+      },
     },
     createAt: {
       type: DataTypes.DATE,
