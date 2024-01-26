@@ -1,4 +1,4 @@
-const { UserModel } = require('../models');
+const { UserModel, SongModel } = require('../models');
 const ValidationError = require('../errors/ValidationError');
 const NotFoundError = require('../errors/NotFoundError');
 const { isValidEmail } = require('../until/email');
@@ -109,7 +109,19 @@ class UserController {
     }
   }
 
-  async getMyProfile(req, response, next) {}
+  async getMyProfile(req, response, next) {
+    const userId = req.userId;
+    const user = await UserModel.findByPk(userId, {
+      include: {
+        model: SongModel,
+      },
+      attributes: {
+        exclude: ['password'],
+      },
+    });
+
+    return response.status(200).json({ data: user });
+  }
 }
 
 module.exports = new UserController();

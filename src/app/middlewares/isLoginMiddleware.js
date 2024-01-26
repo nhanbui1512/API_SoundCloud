@@ -1,3 +1,4 @@
+const { response } = require('express');
 const AuthorizeError = require('../errors/AuthorizeError');
 
 require('dotenv').config();
@@ -5,6 +6,7 @@ const jwt = require('jsonwebtoken');
 
 const isLoginMiddleWare = (req, response, next) => {
   const authHeader = String(req.headers['authorization'] || '');
+
   if (authHeader) {
     const token = authHeader.split(' ')[1];
     try {

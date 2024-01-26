@@ -2,6 +2,7 @@ const express = require('express');
 const SongController = require('../controllers/SongController');
 const multer = require('multer');
 const isLoginMiddleWare = require('../middlewares/isLoginMiddleware');
+const enCodedToken = require('../middlewares/encodedToken');
 
 // cấu hình lưu trữ file và kiểm tra loại file gửi lên
 var storage = multer.diskStorage({
@@ -35,6 +36,7 @@ router.post(
 );
 
 router.get('/get-songs', SongController.getSongs);
+router.get('/getsong', enCodedToken, SongController.getSongById);
 router.post('/like', isLoginMiddleWare, SongController.LikeSong);
 router.delete('/unlike', isLoginMiddleWare, SongController.UnlikeSong);
 module.exports = router;

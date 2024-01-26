@@ -4,12 +4,12 @@ const {
   UserModel,
   UserLikeSongModel,
   FollowUserModel,
-  sequelize,
   GenreModel,
 } = require('../models');
 
 const ValidationError = require('../errors/ValidationError');
 const NotfoundError = require('../errors/NotFoundError');
+const { multiSqlizeToJSON, Sqlize } = require('../until/sequelize');
 
 class SongController {
   async createSong(req, response) {
@@ -70,6 +70,7 @@ class SongController {
     });
   }
 
+  // Thêm trường đã like hay chưa nếu có token gửi lên
   async getSongs(req, response) {
     const currentPage = req.query.page || 1;
     var itemsPerPage = req.query.per_page || 10; // Số bản ghi trên mỗi trang
@@ -109,6 +110,10 @@ class SongController {
         where: {
           songId: ids,
         },
+        include: {
+          model: UserModel,
+          as: 'user',
+        },
       });
 
       const result = songs.map((song) => {
@@ -127,6 +132,41 @@ class SongController {
       console.log(error);
       throw error;
     }
+  }
+
+  async getSongById(req, response) {
+    const songId = req.query.song_id;
+    if (!songId) throw ValidationError({ song_id: 'Must be attached' });
+    const userId = req.userId || null;
+
+    var song = await SongModel.findByPk(songId, {
+      include: {
+        model: UserModel,
+        attributes: {
+          exclude: ['password'],
+        },
+      },
+    });
+
+    song = Sqlize(song);
+    song.owner = song.user;
+    delete song.user;
+
+    const likesOfThisSong = await UserLikeSongModel.findAll({
+      where: {
+        songId: songId,
+      },
+    });
+
+    // nếu người dùng có gửi token lên (đã login)
+    if (userId) {
+      const isLiked = multiSqlizeToJSON(likesOfThisSong).find((item) => item.userId === userId);
+      if (isLiked) song.isLiked = true;
+    }
+
+    song.likeCount = likesOfThisSong.length;
+
+    return response.status(200).json({ song: song });
   }
 
   async LikeSong(req, response) {
