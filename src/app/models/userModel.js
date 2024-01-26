@@ -36,6 +36,7 @@ const User = (sequelize) => {
     },
     avatar: {
       type: DataTypes.STRING,
+      defaultValue: 'defaultAvatar.png',
       get() {
         const fileName = this.getDataValue('avatar');
         if (fileName === null) return fileName;

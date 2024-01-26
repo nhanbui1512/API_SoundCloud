@@ -3,9 +3,9 @@ const SongController = require('../controllers/SongController');
 const multer = require('multer');
 const isLoginMiddleWare = require('../middlewares/isLoginMiddleware');
 
+// cấu hình lưu trữ file và kiểm tra loại file gửi lên
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    console.log(file)
     // Chọn thư mục lưu trữ
     if (file.fieldname === 'thumbNail' && file.mimetype.includes('image')) {
       cb(null, './src/Public/Uploads/Images');
@@ -34,4 +34,7 @@ router.post(
   SongController.createSong,
 );
 
+router.get('/get-songs', SongController.getSongs);
+router.post('/like', isLoginMiddleWare, SongController.LikeSong);
+router.delete('/unlike', isLoginMiddleWare, SongController.UnlikeSong);
 module.exports = router;

@@ -1,15 +1,15 @@
-const { UserModel } = require('../models');
+const { UserModel, SongModel } = require('../models');
 
 class HomeController {
   async index(req, res) {
-    const users = await UserModel.findAll({
-      attributes: {
-        exclude: ['password'],
+    const song = await SongModel.findOne({
+      include: {
+        model: UserModel,
       },
     });
 
     return res.status(200).json({
-      data: users,
+      data: song,
     });
   }
 }

@@ -2,6 +2,14 @@ const ValidationError = require('../errors/ValidationError');
 const { GenreModel } = require('../models');
 
 class GenreControler {
+  async getAll(req, response) {
+    const types = await GenreModel.findAll({
+      attributes: {
+        exclude: ['createAt', 'updateAt'],
+      },
+    });
+    return response.status(200).json({ data: types });
+  }
   async create(req, response) {
     const name = req.body.name;
     if (!name)
