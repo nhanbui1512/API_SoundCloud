@@ -17,7 +17,18 @@ const User = (sequelize) => {
       },
       allowNull: false,
     },
-
+    city: {
+      type: DataTypes.STRING,
+      defaultValue: '',
+    },
+    country: {
+      type: DataTypes.STRING,
+      defaultValue: '',
+    },
+    bio: {
+      type: DataTypes.STRING,
+      defaultValue: '',
+    },
     password: {
       type: DataTypes.STRING,
     },
