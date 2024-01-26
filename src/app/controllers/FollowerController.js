@@ -20,8 +20,9 @@ class Follower {
         //         }
         //     }
         // )
-
-        const userLikeSong = await SongModel.findAll({
+        // const songUserLikes = []
+        
+        const songs = await SongModel.findAll({
             include: [
                 {
                     model: UserModel,
@@ -29,11 +30,34 @@ class Follower {
                 }
             ]
         })
+        const songsUser = songs.map(async (song) => {
+            console.log(song.toJSON())
+            const userLikeSongs = await UserLikeSongModel.findAll({
+                where: {
+                    songId: song.dataValues.id
+                },
+                include: [
+                    {
+                        model: UserModel,
+                        as: 'user'
+                    }
+                ]
+            })
+            const userLike = userLikeSongs.map(async (userLikeSong) => {
+                return song = {
+                    ...song.toJSON(),
+                    ...userLikeSong.toJSON()
+                }
+            })
+            console.log(userLike)
+            return userLike  
+        })
 
         return response.status(200).json({
             result: true,
-            data: userLikeSong
+            data: songsUser
         })
+        
     }
 }
 
