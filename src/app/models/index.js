@@ -30,17 +30,23 @@ const SongPlaylistModel = SongPlaylist(sequelize);
 UserModel.hasMany(SongModel, { onDelete: 'CASCADE' }); // USER VS SONG
 SongModel.belongsTo(UserModel, { onDelete: 'CASCADE' });
 
-UserModel.belongsToMany(SongModel, { through: UserLikeSongModel }); // USER - USER_LIKE_SONG - SONg
-SongModel.belongsToMany(UserModel, { through: UserLikeSongModel });
+// UserModel.belongsToMany(SongModel, { through: UserLikeSongModel }); // USER - USER_LIKE_SONG - ROOM
+// SongModel.belongsToMany(UserModel, { through: UserLikeSongModel });
+UserLikeSongModel.belongsTo(SongModel, { as: 'songOfUserLike', foreignKey: 'songId' });
+UserLikeSongModel.belongsTo(UserModel, { as: 'user', foreignKey: 'userId' });
 
 FollowUserModel.belongsTo(UserModel, { as: 'follower', foreignKey: 'user_id' }); // USER FOLLOW USER
 FollowUserModel.belongsTo(UserModel, { as: 'following', foreignKey: 'followed' });
 
-UserModel.belongsToMany(PlayListModel, { through: FollowPlaylistModel }); // USER - FOLLOWPLAYLIST - PLAYLIST
-PlayListModel.belongsToMany(UserModel, { through: FollowPlaylistModel });
+// UserModel.belongsToMany(PlayListModel, { through: FollowPlaylistModel }); // USER - FOLLOWPLAYLIST - PLAYLIST
+// PlayListModel.belongsToMany(UserModel, { through: FollowPlaylistModel });
+FollowPlaylistModel.belongsTo(UserModel, { as: 'followingUser', foreignKey: 'userId' });
+FollowPlaylistModel.belongsTo(PlayListModel, { as: 'followingPlaylist', foreignKey: 'playlistId' });
 
-SongModel.belongsToMany(PlayListModel, { through: SongPlaylistModel }); // SONG - SONG_PLAYLIST - PLAYLIST
-PlayListModel.belongsTo(SongModel, { through: SongModel });
+// SongModel.belongsToMany(PlayListModel, { through: SongPlaylistModel }); // SONG - SONG_PLAYLIST - PLAYLIST
+// PlayListModel.belongsTo(SongModel, { through: SongModel });
+SongPlaylistModel.belongsTo(PlayListModel, { as: 'playlist', foreignKey: 'playlistId' });
+SongPlaylistModel.belongsTo(PlayListModel, { as: 'song', foreignKey: 'songId' });
 
 SongModel.belongsTo(GenreModel, { onDelete: 'CASCADE' }); // SONG - GENRE
 GenreModel.hasMany(SongModel, { onDelete: 'CASCADE' });

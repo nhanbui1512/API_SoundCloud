@@ -6,8 +6,9 @@ const isLoginMiddleWare = require('../middlewares/isLoginMiddleware');
 // cấu hình lưu trữ file và kiểm tra loại file gửi lên
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    console.log(file)
     // Chọn thư mục lưu trữ
-    if (file.fieldname === 'thumbNail' && file.mimetype === 'image/png') {
+    if (file.fieldname === 'thumbNail' && file.mimetype.includes('image')) {
       cb(null, './src/Public/Uploads/Images');
     } else if (file.fieldname === 'song' && file.mimetype === 'audio/mpeg') {
       cb(null, './src/Public/Uploads/Audios');
