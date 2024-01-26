@@ -1,19 +1,19 @@
-const { response } = require("express")
 const {UserModel} = require("../models")
-const { use } = require("../routes/userRoute")
+const ValidationError = require('../errors/ValidationError')
+const NotFoundError = require('../errors/NotFoundError')
 
 class UserController {
+
   async registerUser(req, response, next) {
     const data = {
       userName: req.body.userName,
       email: req.body.email,
       password: req.body.password,
-      avatar: req.body.avatar || null,
+      avatar: req.files.avatar[0].filename || null,
     }
-
+    
     if(!data.userName || !data.email || !data.password) {
-      return response.status(422).json({
-        result: false,
+      throw new ValidationError({
         message: 'The data is not filled'
       })
     }
@@ -26,8 +26,7 @@ class UserController {
       })
 
       if(user) {
-        return response.status(400).json({
-          result: false,
+        throw new ValidationError({
           message: 'Email is exist'
         })
       }
@@ -35,47 +34,49 @@ class UserController {
         const newUser = await UserModel.create(data)
         return response.status(200).json({
           result: true,
-          data: newUser,
+          data: {...newUser.dataValues, password: null},
           message: 'Register successfully'
         })
       }
     } catch (error) {
-      return response.status(500).json({message: error.message})
+      throw new ValidationError({
+        message: error.message
+      })
     }
   }
 
   async updateUser (req, response, next) {
-    const userId = req.query.id
+    const userId = req.userId
+    console.log(userId)
     
-    if(userId) {
-      const user = await UserModel.findOne({
-        where: {
-          id: userId
-        }
-      })
-
+    const user = await UserModel.findOne({
+      where: {
+        id: userId
+      }
+    })
+    
+    if(user) {
       user.userName = req.body.userName;
-      user.email = req.body.email;
-      user.password = req.body.password;
-      user.avatar = req.body.avatar || null;
+      user.city = req.body.city || null;
+      user.country = req.body.country || null;
+      user.bio = req.body.bio || null;
 
       const newUser = await user.save()
       return response.status(200).json({
         result: true,
-        data: newUser,
+        data: {...newUser.dataValues, password: null},
         message: 'Update successfully'
       })
     }
     else {
-      return response.status(400).json({
-        result: false,
+      throw new NotFoundError({
         message: 'User not found!'
       })
     }
   }
 
   async changePassWord (req, response, next) {
-    const userId = req.query.id
+    const userId = req.userId
     const ownPass = req.body.ownPassWord
     const newPass = req.body.newPassWord
     const confirmPass = req.body.confirmPassWord
@@ -104,7 +105,7 @@ class UserController {
         const newUser = await user.save()
         return response.status(200).json({
           result: true,
-          data: newUser,
+          data: {...newUser.dataValues, password: null},
           message: 'User was update pass successfully'
         })
       }
