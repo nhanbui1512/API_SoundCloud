@@ -1,6 +1,8 @@
 const mp3Duration = require('mp3-duration');
-const { SongModel, UserModel } = require('../models');
+const { SongModel, UserModel, UserLikeSongModel } = require('../models');
 const ValidationError = require('../errors/ValidationError');
+const NotfoundError = require('../errors/NotFoundError');
+const Song = require('../models/songModel');
 
 class SongController {
   async createSong(req, response) {
@@ -50,6 +52,79 @@ class SongController {
 
       await user.addSong(newSong);
       return response.status(200).json({ isSuccess: true, data: newSong });
+    });
+  }
+
+  async getSongs(req, response) {
+    const page = Number(req.query.page);
+    const perPage = Number(req.query.per_page);
+    const erros = [];
+
+    if (!page) erros.push({ page: 'page not validation' });
+    if (!perPage) erros.push({ perPage: 'per_page not validation' });
+    if (erros.length > 0) throw new ValidationError(erros);
+
+    const songs = await SongModel.findAll({
+      include: {
+        model: UserModel,
+        attributes: {
+          exclude: ['password'],
+        },
+      },
+    });
+
+    return response.status(200).json({ data: songs });
+  }
+
+  async LikeSong(req, response) {
+    const userId = req.userId;
+    const songId = req.query.song_id;
+    if (!songId) throw new ValidationError({ song_id: 'song_id is not validation' });
+
+    const user = await UserModel.findByPk(userId, {
+      attributes: {
+        exclude: ['password'],
+      },
+    });
+    const song = await SongModel.findByPk(songId);
+
+    if (song === null)
+      throw new NotfoundError({
+        song: 'Not found song',
+      });
+
+    const liked = await UserLikeSongModel.findOrCreate({
+      where: {
+        userId: userId,
+        songId: songId,
+      },
+    });
+
+    const result = liked[0].toJSON();
+
+    result.user = user;
+    result.song = song;
+
+    return response.send({
+      data: result,
+    });
+  }
+
+  async UnlikeSong(req, response) {
+    const userId = req.userId;
+    const songId = req.query.song_id;
+    if (!songId) throw new ValidationError({ song_id: 'song_id is not validation' });
+
+    await UserLikeSongModel.destroy({
+      where: {
+        userId: userId,
+        songId: songId,
+      },
+    });
+
+    return response.status(200).json({
+      isSuccess: true,
+      message: 'Unlike the song successfully',
     });
   }
 }
