@@ -1,3 +1,4 @@
+const NotFoundError = require('../errors/NotFoundError');
 const ValidationError = require('../errors/ValidationError');
 const {
   PlayListModel,
@@ -28,7 +29,7 @@ class PlayListController {
       },
     });
 
-    if (isExist) {
+    if (isExist !== null) {
       return response.status(400).json({
         result: false,
         message: 'Name is exist',
@@ -51,8 +52,15 @@ class PlayListController {
   async addSongsToPlaylist(req, response) {
     const idPlaylist = req.query.idPlaylist;
     const idSongs = req.body.idSongs;
-
     if (!idPlaylist) throw new ValidationError({ message: 'IdPlaylist must be attached' });
+
+    const playList = await PlayListModel.findOne({
+      where: {
+        userId: userId,
+      },
+    });
+
+    if (playList === null) throw new NotFoundError({ playlist: 'Not found' });
 
     await createSongPlaylist(idSongs, idPlaylist); // add relationship song playlist
 

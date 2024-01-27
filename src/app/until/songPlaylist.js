@@ -1,24 +1,31 @@
-const { SongPlaylistModel } = require('../models');
+const { SongPlaylistModel, PlayListModel, SongModel } = require('../models');
+const { multiSqlizeToJSON } = require('./sequelize');
 
 const createSongPlaylist = async (idSongs, idPlaylist, typef = 'add') => {
-  if (idSongs.length > 0) {
-    idSongs.map(async (idSong) => {
-      const checkFollow = await SongPlaylistModel.findOne({
-        where: {
-          songId: idSong,
-          playlistId: idPlaylist,
-        },
-      });
-
-      if (!checkFollow) {
-        await SongPlaylistModel.findOrCreate({
+  try {
+    if (idSongs.length && idSongs.length > 0) {
+      var songs = await SongModel.findAll({
           where: {
-            songId: idSong,
+            id: idSongs,
+          },
+        }),
+        songs = multiSqlizeToJSON(songs);
+
+      var songIds = songs.map((song) => song.id);
+
+      // kiểm tra xem song đã tồn tại trong play list
+      var songsInPlaylist = await SongPlaylistModel.findAll({
+          where: {
+            songId: songIds,
             playlistId: idPlaylist,
           },
-        });
-      }
-    });
+        }),
+        songsInPlaylist = multiSqlizeToJSON(songsInPlaylist);
+
+      // xóa trong songIds nếu tồn tại trong check
+    }
+  } catch (error) {
+    throw error;
   }
 };
 
