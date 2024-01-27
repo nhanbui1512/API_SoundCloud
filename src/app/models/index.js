@@ -47,7 +47,7 @@ FollowPlaylistModel.belongsTo(PlayListModel, { as: 'followingPlaylist', foreignK
 // SongModel.belongsToMany(PlayListModel, { through: SongPlaylistModel }); // SONG - SONG_PLAYLIST - PLAYLIST
 // PlayListModel.belongsTo(SongModel, { through: SongModel });
 SongPlaylistModel.belongsTo(PlayListModel, { as: 'playlist', foreignKey: 'playlistId' });
-SongPlaylistModel.belongsTo(PlayListModel, { as: 'song', foreignKey: 'songId' });
+SongPlaylistModel.belongsTo(SongModel, { as: 'song', foreignKey: 'songId' });
 
 SongModel.belongsTo(GenreModel, { onDelete: 'CASCADE' }); // SONG - GENRE
 GenreModel.hasMany(SongModel, { onDelete: 'CASCADE' });

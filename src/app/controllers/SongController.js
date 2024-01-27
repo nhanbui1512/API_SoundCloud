@@ -5,12 +5,15 @@ const {
   UserLikeSongModel,
   FollowUserModel,
   GenreModel,
+  PlayListModel,
+  SongPlaylistModel,
 } = require('../models');
 
 const ValidationError = require('../errors/ValidationError');
 const NotfoundError = require('../errors/NotFoundError');
 const { multiSqlizeToJSON, SqlizeToJSON } = require('../until/sequelize');
 const { shuffleArray } = require('../until/arrays');
+const { Op } = require('sequelize');
 
 class SongController {
   async createSong(req, response) {
@@ -71,7 +74,7 @@ class SongController {
     });
   }
 
-  // GET     /song/get-songs?page=2&per_page=12
+  // GET  /song/get-songs?page=2&per_page=12
   async getSongs(req, response) {
     const userId = req.userId || null;
 
@@ -287,6 +290,76 @@ class SongController {
       isSuccess: true,
       message: 'Delete song successfully',
     });
+  }
+
+  // GET /song/search?value=tenbaihat
+
+  async SearchSong(req, response) {
+    const value = req.query.value;
+    if (!value || value.trim() === '') throw new ValidationError({ value: 'Not validation' });
+
+    var songs = await SongModel.findAll({
+        where: {
+          name: { [Op.like]: `%${value}%` },
+        },
+        include: {
+          model: UserModel,
+          attributes: {
+            exclude: ['password'],
+          },
+        },
+      }),
+      songs = multiSqlizeToJSON(songs);
+
+    songs = songs.map((song) => {
+      song.owner = song.user;
+      delete song.user;
+      return song;
+    });
+
+    var playlists = await PlayListModel.findAll({
+        where: {
+          name: { [Op.like]: [`%${value}%`] },
+        },
+      }),
+      playlists = multiSqlizeToJSON(playlists);
+
+    const playlistIds = playlists.map((playlist) => playlist.id);
+
+    var songsOfPlaylist = await SongPlaylistModel.findAll({
+      where: {
+        playlistId: playlistIds,
+      },
+      include: {
+        model: SongModel,
+        as: 'song',
+        // include: {
+        //   model: UserModel,
+        //   attributes: {
+        //     exclude: ['password'],
+        //   },
+        // },
+      },
+    });
+
+    songsOfPlaylist = multiSqlizeToJSON(songsOfPlaylist);
+
+    songsOfPlaylist = songsOfPlaylist.map((song) => {
+      var playlistId = song.playlistId;
+      song = song.song;
+      song.playlistId = playlistId;
+      song.owner = song.user;
+      delete song.user;
+      return song;
+    });
+
+    playlists = playlists.map((playlist) => {
+      playlist.songs = songsOfPlaylist.filter((song) => song.playlistId === playlist.id);
+
+      return playlist;
+    });
+
+    return response.status(200).json({ songs, playlists });
   }
 }
 
