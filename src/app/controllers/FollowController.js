@@ -4,8 +4,8 @@ const ValidationError = require('../errors/ValidationError');
 const { FollowUserModel, UserModel, FollowPlaylistModel, PlayListModel } = require('../models');
 
 class Follower {
-  async getMyFollowers(req, response, next) {
-    const userFollowers = await FollowUserModel.findAll({
+  async getMyFollowing(req, response, next) {
+    const userFollowers = await FollowUserModel.findAndCountAll({
       where: {
         user_id: 1,
       },
@@ -16,13 +16,40 @@ class Follower {
           exclude: ['password'],
         },
       },
+      attributes: {
+        exclude: ['user_id', 'followed'],
+      },
     });
 
     return response.status(200).json({
-      result: true,
-      data: userFollowers,
+      data: {
+        count: userFollowers.count,
+        data: userFollowers.rows,
+      },
     });
   }
+
+  async getMyFollowers(req, response, next) {
+    const userId = req.userId;
+    const followers = await FollowUserModel.findAndCountAll({
+      where: {
+        followed: userId,
+      },
+      include: {
+        model: UserModel,
+        as: 'follower',
+      },
+      attributes: {
+        exclude: ['user_id'],
+      },
+    });
+
+    return response.status(200).json({
+      count: followers.count,
+      data: followers.rows,
+    });
+  }
+
   async followUser(req, response, next) {
     const userFolled = req.query.user_id;
     const userId = req.userId;

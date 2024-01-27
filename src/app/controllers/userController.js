@@ -117,14 +117,40 @@ class UserController {
   // GET  /user/get-profile
   async getMyProfile(req, response, next) {
     const userId = req.userId;
-    const user = await UserModel.findByPk(userId, {
-      include: {
-        model: SongModel,
-      },
+    var user = await UserModel.findByPk(userId, {
+      include: [
+        {
+          model: SongModel,
+        },
+      ],
       attributes: {
         exclude: ['password'],
       },
     });
+
+    if (user !== null) {
+      user = SqlizeToJSON(user);
+    }
+
+    var followers = await FollowUserModel.findAll({
+      where: {
+        [Op.or]: [{ followed: userId }, { user_id: userId }],
+      },
+    });
+
+    const followingCount = followers.reduce((total, follow) => {
+      if (follow.user_id === userId) return total + 1;
+      return total;
+    }, 0);
+
+    const followerCount = followers.reduce((total, follow) => {
+      if (follow.followed === userId) return total + 1;
+      return total;
+    }, 0);
+
+    user.track = user.songs.length;
+    user.followingNumber = followingCount;
+    user.followerNumber = followerCount;
 
     return response.status(200).json({ data: user });
   }
@@ -151,15 +177,21 @@ class UserController {
     user = SqlizeToJSON(user);
 
     if (user !== null) {
-      // lấy ra những người follow user muốn tìm kiếm
+      // lấy ra những người đã follow  user
       var follower = await FollowUserModel.findAndCountAll({
         where: {
           followed: userIdFind,
         },
       });
 
-      user.followerNumber = follower.count;
+      var following = await FollowUserModel.findAndCountAll({
+        where: {
+          user_id: userIdFind,
+        },
+      });
 
+      user.followerNumber = follower.count;
+      user.followingNumber = following.count;
       // Nếu người dùng có gửi token lên thì kiểm tra xem đã follow user tìm kiếm hay chưa
       if (userId !== null) {
         follower = multiSqlizeToJSON(follower.rows);

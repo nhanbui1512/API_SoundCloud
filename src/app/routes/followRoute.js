@@ -4,6 +4,9 @@ const isLoginMiddleware = require('../middlewares/isLoginMiddleware');
 
 const router = express.Router();
 
+// những người mình đang theo dõi
+router.get('/following', isLoginMiddleware, FollowController.getMyFollowing);
+// những người theo dõi mình
 router.get('/followers', isLoginMiddleware, FollowController.getMyFollowers);
 router.get('/playlists', isLoginMiddleware, FollowController.MyPlaylists);
 
