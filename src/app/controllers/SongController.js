@@ -10,6 +10,7 @@ const {
 const ValidationError = require('../errors/ValidationError');
 const NotfoundError = require('../errors/NotFoundError');
 const { multiSqlizeToJSON, SqlizeToJSON } = require('../until/sequelize');
+const { shuffleArray } = require('../until/arrays');
 
 class SongController {
   async createSong(req, response) {
@@ -71,8 +72,9 @@ class SongController {
   }
 
   // GET     /song/get-songs?page=2&per_page=12
-  // Thêm trường đã like hay chưa nếu có token gửi lên
   async getSongs(req, response) {
+    const userId = req.userId || null;
+
     const currentPage = req.query.page || 1;
     var itemsPerPage = req.query.per_page || 10; // Số bản ghi trên mỗi trang
     if (itemsPerPage > 100) itemsPerPage = 100;
@@ -96,8 +98,16 @@ class SongController {
               exclude: ['password'],
             },
           },
+          {
+            model: GenreModel,
+            attributes: {
+              exclude: ['createAt', 'updateAt'],
+            },
+          },
         ],
-
+        attributes: {
+          exclude: ['genreId', 'ownerId'],
+        },
         limit: Number(itemsPerPage),
         offset: offset,
         order: [['createAt', 'DESC']],
@@ -117,8 +127,38 @@ class SongController {
         },
       });
 
-      const result = songs.map((song) => {
+      if (userId) {
+        let result = songs.map((song) => {
+          song = song.toJSON();
+
+          song.owner = song.user;
+          delete song.user;
+          // Kiểm tra user có like bài hát hay không
+          song.isLiked = likes.find((like) => like.userId === userId && song.id === like.songId)
+            ? true
+            : false;
+
+          var count = likes.reduce((likeCount, like) => {
+            if (like.songId == song.id) return likeCount + 1;
+            else return likeCount;
+          }, 0);
+
+          song.likeCount = count;
+          return song;
+        });
+
+        // Xáo trộn mảng
+        result = shuffleArray(result);
+
+        return response.status(200).json({ data: result });
+      }
+
+      let result = songs.map((song) => {
         song = song.toJSON();
+
+        song.owner = song.user;
+        delete song.user;
+
         var count = likes.reduce((likeCount, like) => {
           if (like.songId == song.id) return likeCount + 1;
           else return likeCount;
@@ -127,6 +167,8 @@ class SongController {
         song.likeCount = count;
         return song;
       });
+      // Xáo trộn mảng
+      result = shuffleArray(result);
 
       return response.status(200).json({ data: result });
     } catch (error) {

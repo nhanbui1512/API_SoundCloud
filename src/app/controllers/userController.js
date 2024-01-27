@@ -6,6 +6,7 @@ const { SqlizeToJSON, multiSqlizeToJSON } = require('../until/sequelize');
 const { Op } = require('sequelize');
 
 class UserController {
+  // POST    /user/register
   async registerUser(req, response, next) {
     const data = {
       userName: req.body.userName,
@@ -41,6 +42,7 @@ class UserController {
     }
   }
 
+  // PUT  /user/update
   async updateUser(req, response, next) {
     const userId = req.userId;
     console.log(userId);
@@ -70,6 +72,7 @@ class UserController {
     }
   }
 
+  // PUT  /user/change-password
   async changePassWord(req, response, next) {
     const userId = req.userId;
     const ownPass = req.body.ownPassWord;
@@ -111,6 +114,7 @@ class UserController {
     }
   }
 
+  // GET  /user/get-profile
   async getMyProfile(req, response, next) {
     const userId = req.userId;
     const user = await UserModel.findByPk(userId, {

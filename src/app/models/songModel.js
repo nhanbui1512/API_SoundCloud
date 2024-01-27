@@ -17,7 +17,11 @@ const Song = (sequelize) => {
     description: {
       type: DataTypes.STRING,
     },
-    numberListen: {
+    numberOfListen: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+    numberOfLoop: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
