@@ -302,12 +302,24 @@ class SongController {
         where: {
           name: { [Op.like]: `%${value}%` },
         },
-        include: {
-          model: UserModel,
-          attributes: {
-            exclude: ['password'],
+        include: [
+          {
+            model: UserModel,
+            attributes: {
+              exclude: ['password'],
+            },
           },
+          {
+            model: GenreModel,
+            attributes: {
+              exclude: ['updateAt', 'createAt'],
+            },
+          },
+        ],
+        attributes: {
+          exclude: ['genreId', 'ownerId'],
         },
+        limit: 20,
       }),
       songs = multiSqlizeToJSON(songs);
 
@@ -333,13 +345,17 @@ class SongController {
       include: {
         model: SongModel,
         as: 'song',
-        // include: {
-        //   model: UserModel,
-        //   attributes: {
-        //     exclude: ['password'],
-        //   },
-        // },
+        attributes: {
+          exclude: ['genreId', 'ownerId'],
+        },
+        include: {
+          model: GenreModel,
+          attributes: {
+            exclude: ['updateAt', 'createAt'],
+          },
+        },
       },
+      limit: 20,
     });
 
     songsOfPlaylist = multiSqlizeToJSON(songsOfPlaylist);
