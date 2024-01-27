@@ -10,9 +10,9 @@ router.get('/following', isLoginMiddleware, FollowController.getMyFollowing);
 router.get('/followers', isLoginMiddleware, FollowController.getMyFollowers);
 router.get('/playlists', isLoginMiddleware, FollowController.MyPlaylists);
 
-router.post('/playlists', isLoginMiddleware, FollowController.followingPlaylist);
+router.post('/playlists', isLoginMiddleware, FollowController.followPlaylist);
 
-router.delete('/playlists', isLoginMiddleware, FollowController.Unfollowingplaylist);
+router.delete('/playlists', isLoginMiddleware, FollowController.Unfollowplaylist);
 
 router.delete('/', isLoginMiddleware, FollowController.unFollowUser);
 router.post('/', isLoginMiddleware, FollowController.followUser);

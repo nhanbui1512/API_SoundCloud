@@ -126,9 +126,9 @@ class Follower {
     });
   }
 
-  async followingPlaylist(req, response) {
+  async followPlaylist(req, response) {
     const userId = req.userId;
-    const playlistId = req.query.idPlaylist;
+    const playlistId = Number(req.query.idPlaylist);
     if (!playlistId) throw new ValidationError({ message: 'IdPlaylist is not validation' });
 
     const user = await UserModel.findByPk(userId, {
@@ -160,9 +160,9 @@ class Follower {
     });
   }
 
-  async Unfollowingplaylist(req, response) {
+  async Unfollowplaylist(req, response) {
     const userId = req.userId;
-    const playlistId = req.query.idPlaylist;
+    const playlistId = Number(req.query.idPlaylist);
     if (!playlistId) throw new ValidationError({ idPlaylist: 'IdPlaylist is not validation' });
 
     await FollowPlaylistModel.destroy({
@@ -174,7 +174,7 @@ class Follower {
 
     return response.status(200).json({
       isSuccess: true,
-      message: 'Unlike the playlist successfully',
+      message: 'UnFollow the playlist successfully',
     });
   }
 }

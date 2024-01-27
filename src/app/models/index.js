@@ -30,24 +30,42 @@ const SongPlaylistModel = SongPlaylist(sequelize);
 UserModel.hasMany(SongModel, { foreignKey: 'ownerId', onDelete: 'CASCADE' }); // USER VS SONG
 SongModel.belongsTo(UserModel, { foreignKey: 'ownerId', onDelete: 'CASCADE' });
 
-// UserModel.belongsToMany(SongModel, { through: UserLikeSongModel }); // USER - USER_LIKE_SONG - ROOM
-// SongModel.belongsToMany(UserModel, { through: UserLikeSongModel });
-UserLikeSongModel.belongsTo(SongModel, { as: 'songOfUserLike', foreignKey: 'songId' });
-UserLikeSongModel.belongsTo(UserModel, { as: 'user', foreignKey: 'userId' });
+// USER - USER_LIKE_SONG - ROOM
+UserLikeSongModel.belongsTo(SongModel, {
+  as: 'songOfUserLike',
+  foreignKey: 'songId',
+  onDelete: 'CASCADE',
+});
+UserLikeSongModel.belongsTo(UserModel, { as: 'user', foreignKey: 'userId', onDelete: 'CASCADE' });
 
-FollowUserModel.belongsTo(UserModel, { as: 'follower', foreignKey: 'user_id' }); // USER FOLLOW USER
-FollowUserModel.belongsTo(UserModel, { as: 'following', foreignKey: 'followed' });
+FollowUserModel.belongsTo(UserModel, {
+  as: 'follower',
+  foreignKey: 'user_id',
+  onDelete: 'CASCADE',
+}); // USER FOLLOW USER
+FollowUserModel.belongsTo(UserModel, {
+  as: 'following',
+  foreignKey: 'followed',
+  onDelete: 'CASCADE',
+});
 
-// UserModel.belongsToMany(PlayListModel, { through: FollowPlaylistModel }); // USER - FOLLOWPLAYLIST - PLAYLIST
-// PlayListModel.belongsToMany(UserModel, { through: FollowPlaylistModel });
+FollowPlaylistModel.belongsTo(UserModel, {
+  as: 'followingUser',
+  foreignKey: 'userId',
+  onDelete: 'CASCADE',
+});
+FollowPlaylistModel.belongsTo(PlayListModel, {
+  as: 'followingPlaylist',
+  foreignKey: 'playlistId',
+  onDelete: 'CASCADE',
+});
 
-FollowPlaylistModel.belongsTo(UserModel, { as: 'followingUser', foreignKey: 'userId' });
-FollowPlaylistModel.belongsTo(PlayListModel, { as: 'followingPlaylist', foreignKey: 'playlistId' });
-
-// SongModel.belongsToMany(PlayListModel, { through: SongPlaylistModel }); // SONG - SONG_PLAYLIST - PLAYLIST
-// PlayListModel.belongsTo(SongModel, { through: SongModel });
-SongPlaylistModel.belongsTo(PlayListModel, { as: 'playlist', foreignKey: 'playlistId' });
-SongPlaylistModel.belongsTo(SongModel, { as: 'song', foreignKey: 'songId' });
+SongPlaylistModel.belongsTo(PlayListModel, {
+  as: 'playlist',
+  foreignKey: 'playlistId',
+  onDelete: 'CASCADE',
+});
+SongPlaylistModel.belongsTo(SongModel, { as: 'song', foreignKey: 'songId', onDelete: 'CASCADE' });
 
 SongModel.belongsTo(GenreModel, { onDelete: 'CASCADE' }); // SONG - GENRE
 GenreModel.hasMany(SongModel, { onDelete: 'CASCADE' });
