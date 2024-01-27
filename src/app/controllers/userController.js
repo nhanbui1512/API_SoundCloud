@@ -176,7 +176,7 @@ class UserController {
     const value = req.query.value;
     if (!value || value.trim() === '') throw new ValidationError({ value: 'Not validation' });
 
-    const users = await UserModel.findAndCountAll({
+    var users = await UserModel.findAll({
       where: {
         [Op.or]: [
           { email: { [Op.like]: `%${value}%` } },
@@ -187,6 +187,29 @@ class UserController {
           },
         ],
       },
+      include: [{ model: SongModel }],
+    });
+
+    const userIds = users.map((user) => user.id);
+
+    var followers = await FollowUserModel.findAll({
+      where: {
+        followed: userIds,
+      },
+    });
+
+    followers = multiSqlizeToJSON(followers);
+
+    users = users.map((user) => {
+      user = SqlizeToJSON(user);
+      user.track = user.songs.length;
+
+      user.followerCount = followers.reduce((total, follow) => {
+        if (follow.followed === user.id) return total + 1;
+        else return total;
+      }, 0);
+
+      return user;
     });
 
     return response.status(200).json({ data: users });

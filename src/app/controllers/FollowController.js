@@ -1,3 +1,4 @@
+const NotFoundError = require('../errors/NotFoundError');
 const ValidationError = require('../errors/ValidationError');
 
 const { FollowUserModel, UserModel, UserLikeSongModel, SongModel } = require('../models');
@@ -30,6 +31,10 @@ class Follower {
       throw new ValidationError({ user_id: 'Must be attached' });
     }
 
+    const user = await UserModel.findByPk(userFolled);
+
+    if (user === null) throw new NotFoundError({ user: 'Not found User' });
+
     const result = await FollowUserModel.findOrCreate({
       where: {
         user_id: userId,
@@ -54,22 +59,10 @@ class Follower {
           },
         },
       ],
+      attributes: {
+        exclude: ['user_id', 'followed'],
+      },
     });
-
-    const userLikedSongs = await UserLikeSongModel.findAll({
-      include: [
-        {
-          model: UserModel,
-          as: 'user',
-        },
-        {
-          model: SongModel,
-          as: 'songOfUserLike',
-        },
-      ],
-    });
-
-    console.log(multiSqlizeToJSON(userLikedSongs));
 
     return response.status(200).json({ data: dataResponse });
   }

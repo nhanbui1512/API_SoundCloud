@@ -14,7 +14,7 @@ const SongPlaylist = require('./SongPlaylistModel');
 
 dotenv.config();
 
-const sequelize = new Sequelize(cloud.dbName, cloud.userName, cloud.password, cloud.config);
+const sequelize = new Sequelize(local.dbName, local.userName, local.password, local.config);
 
 const UserModel = User(sequelize);
 const SongModel = Song(sequelize);

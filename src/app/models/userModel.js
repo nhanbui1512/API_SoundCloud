@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const dotenv = require('dotenv');
+const { formatTime } = require('../until/time');
 dotenv.config();
 
 const User = (sequelize) => {
@@ -46,6 +47,15 @@ const User = (sequelize) => {
     createAt: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
+    },
+    createAtFormatTime: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        const time = this.getDataValue(`createAt`);
+        if (time === null) return time;
+        const timeFormated = formatTime(time);
+        return `${timeFormated.hour}:${timeFormated.minute}:${timeFormated.second} ${timeFormated.day}/${timeFormated.month}/${timeFormated.year}`;
+      },
     },
     updateAt: {
       type: DataTypes.DATE,
