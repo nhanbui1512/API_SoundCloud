@@ -29,23 +29,6 @@ class Follower {
   }
 
   // Follow Playlist
-  async MyPlaylists(req, response) {
-    const userId = req.userId;
-
-    if (userId) {
-      const playlistFollow = await FollowPlaylistModel.findAll({
-        where: {
-          userId: userId,
-        },
-      });
-      return response.status(200).json({
-        result: true,
-        data: playlistFollow,
-      });
-    } else {
-      throw new ValidationError({ message: 'User not found' });
-    }
-  }
 
   async followingPlaylist(req, response) {
     const userId = req.userId;
