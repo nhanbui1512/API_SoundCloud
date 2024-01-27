@@ -50,6 +50,7 @@ class PlayListController {
   }
 
   async addSongsToPlaylist(req, response) {
+    const userId = req.userId;
     const idPlaylist = req.query.idPlaylist;
     const idSongs = req.body.idSongs;
     if (!idPlaylist) throw new ValidationError({ message: 'IdPlaylist must be attached' });
@@ -57,6 +58,7 @@ class PlayListController {
     const playList = await PlayListModel.findOne({
       where: {
         userId: userId,
+        id: idPlaylist,
       },
     });
 
@@ -64,7 +66,7 @@ class PlayListController {
 
     await createSongPlaylist(idSongs, idPlaylist); // add relationship song playlist
 
-    const PlayList = await SongPlaylistModel.findAll({
+    const PlayLists = await SongPlaylistModel.findAll({
       where: {
         playlistId: idPlaylist,
       },
@@ -80,10 +82,10 @@ class PlayListController {
       ],
     });
 
-    if (PlayList) {
+    if (PlayLists) {
       return response.status(200).json({
         result: true,
-        data: PlayList,
+        data: PlayLists,
       });
     } else {
       return response.status(422).json({
@@ -96,8 +98,26 @@ class PlayListController {
   async getAllPlaylist(req, response) {
     const userId = req.userId;
 
+    const currentPage = req.query.page || 1;
+    var itemsPerPage = req.query.per_page || 10; // Số bản ghi trên mỗi trang
+    if (itemsPerPage > 100) itemsPerPage = 100;
+
+    const offset = (currentPage - 1) * itemsPerPage; // Tính OFFSET
+
+    const page = Number(req.query.page);
+    const perPage = Number(req.query.per_page);
+    const erros = [];
+
+    if (!page) erros.push({ page: 'page not validation' });
+    if (!perPage) erros.push({ perPage: 'per_page not validation' });
+    if (erros.length > 0) throw new ValidationError(erros);
+
     if (userId) {
-      const playlists = await PlayListModel.findAll();
+      const playlists = await PlayListModel.findAll({
+        limit: Number(itemsPerPage),
+        offset: offset,
+        order: [['createAt', 'DESC']],
+      });
       return response.status(200).json({
         result: true,
         data: playlists,
@@ -109,10 +129,20 @@ class PlayListController {
 
   async getPlaylistById(req, response) {
     const idPlaylist = req.query.idPlaylist;
-    const playlist = await PlayListModel.findOne({
+    const playlist = await SongPlaylistModel.findOne({
       where: {
-        id: idPlaylist,
+        playlistId: idPlaylist,
       },
+      include: [
+        {
+          model: PlayListModel,
+          as: 'playlist',
+        },
+        {
+          model: SongModel,
+          as: 'song',
+        },
+      ],
     });
     if (playlist) {
       return response.status(200).json({

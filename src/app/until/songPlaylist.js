@@ -23,6 +23,34 @@ const createSongPlaylist = async (idSongs, idPlaylist, typef = 'add') => {
         songsInPlaylist = multiSqlizeToJSON(songsInPlaylist);
 
       // xóa trong songIds nếu tồn tại trong check
+      var songIdsInPlaylist = songsInPlaylist.map((songInPlaylist) => songInPlaylist.songId);
+      if (songIdsInPlaylist.length < 1) {
+        var songPlaylistIds = [];
+        songIds.map((songId) => {
+          songPlaylistIds.push({
+            songId: songId,
+            playlistId: Number(idPlaylist),
+          });
+        });
+
+        await SongPlaylistModel.bulkCreate(songPlaylistIds);
+      } else {
+        var idSongs = [];
+        songIds.forEach((songId) => {
+          if (!songIdsInPlaylist.includes(songId)) {
+            idSongs.push(songId);
+          }
+        });
+
+        var songPlaylistIds = [];
+        idSongs.map((songId) => {
+          songPlaylistIds.push({
+            songId: songId,
+            playlistId: Number(idPlaylist),
+          });
+        });
+        await SongPlaylistModel.bulkCreate(songPlaylistIds);
+      }
     }
   } catch (error) {
     throw error;
