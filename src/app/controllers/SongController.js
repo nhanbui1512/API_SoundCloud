@@ -9,7 +9,7 @@ const {
 
 const ValidationError = require('../errors/ValidationError');
 const NotfoundError = require('../errors/NotFoundError');
-const { multiSqlizeToJSON, Sqlize } = require('../until/sequelize');
+const { multiSqlizeToJSON, SqlizeToJSON } = require('../until/sequelize');
 
 class SongController {
   async createSong(req, response) {
@@ -70,6 +70,7 @@ class SongController {
     });
   }
 
+  // GET     /song/get-songs?page=2&per_page=12
   // Thêm trường đã like hay chưa nếu có token gửi lên
   async getSongs(req, response) {
     const currentPage = req.query.page || 1;
@@ -134,6 +135,7 @@ class SongController {
     }
   }
 
+  // GET     /song/getsong?song_id=12
   async getSongById(req, response) {
     const songId = req.query.song_id;
     if (!songId) throw ValidationError({ song_id: 'Must be attached' });
@@ -148,7 +150,7 @@ class SongController {
       },
     });
 
-    song = Sqlize(song);
+    song = SqlizeToJSON(song);
     song.owner = song.user;
     delete song.user;
 
@@ -169,6 +171,7 @@ class SongController {
     return response.status(200).json({ song: song });
   }
 
+  //  POST    /song/like?song_id =1
   async LikeSong(req, response) {
     const userId = req.userId;
     const songId = req.query.song_id;
@@ -218,6 +221,29 @@ class SongController {
     return response.status(200).json({
       isSuccess: true,
       message: 'Unlike the song successfully',
+    });
+  }
+
+  // DELETE /song
+  async deleteSong(req, response) {
+    const songId = Number(req.query.song_id);
+    const userId = req.userId;
+
+    if (!songId) throw new ValidationError({ song_id: 'Not validation' });
+
+    const song = await SongModel.findOne({
+      where: {
+        ownerId: userId,
+        id: songId,
+      },
+    });
+
+    if (song === null) throw new NotfoundError({ song: 'User not own this song' });
+
+    await song.destroy();
+    return response.status(200).json({
+      isSuccess: true,
+      message: 'Delete song successfully',
     });
   }
 }

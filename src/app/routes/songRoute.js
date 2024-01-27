@@ -35,8 +35,9 @@ router.post(
   SongController.createSong,
 );
 
-router.get('/get-songs', SongController.getSongs);
+router.get('/get-songs', enCodedToken, SongController.getSongs);
 router.get('/getsong', enCodedToken, SongController.getSongById);
 router.post('/like', isLoginMiddleWare, SongController.LikeSong);
 router.delete('/unlike', isLoginMiddleWare, SongController.UnlikeSong);
+router.delete('/', isLoginMiddleWare, SongController.deleteSong);
 module.exports = router;

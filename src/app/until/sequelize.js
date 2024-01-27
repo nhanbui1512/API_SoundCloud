@@ -2,7 +2,7 @@ module.exports = {
   multiSqlizeToJSON: function (data) {
     return data.map((element) => element.toJSON());
   },
-  Sqlize: function (data) {
+  SqlizeToJSON: function (data) {
     return data ? data.toJSON() : data;
   },
 };
