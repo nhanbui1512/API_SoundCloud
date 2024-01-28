@@ -1,11 +1,12 @@
 const express = require('express');
 const PlaylistController = require('../controllers/PlaylistController');
 const isLoginMiddleware = require('../middlewares/isLoginMiddleware');
+const encodedToken = require('../middlewares/encodedToken');
 
 const router = express.Router();
 
-router.get('/', isLoginMiddleware, PlaylistController.getPlaylistById);
-router.get('/getall', isLoginMiddleware, PlaylistController.getAllPlaylist);
+router.get('/', encodedToken, PlaylistController.getPlaylistById);
+router.get('/getall', encodedToken, PlaylistController.getAllPlaylist);
 router.get('/follow-playlists', isLoginMiddleware, PlaylistController.MyPlaylists); //playlist following
 router.get('/playlist-followed', isLoginMiddleware, PlaylistController.getUserFollowPlaylist); //playlist followed users
 
