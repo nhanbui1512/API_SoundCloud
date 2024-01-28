@@ -11,7 +11,6 @@ router.get('/followers', isLoginMiddleware, FollowController.getMyFollowers);
 router.get('/playlists', isLoginMiddleware, FollowController.MyPlaylists);
 
 router.post('/playlists', isLoginMiddleware, FollowController.followPlaylist);
-
 router.delete('/playlists', isLoginMiddleware, FollowController.Unfollowplaylist);
 
 router.delete('/', isLoginMiddleware, FollowController.unFollowUser);

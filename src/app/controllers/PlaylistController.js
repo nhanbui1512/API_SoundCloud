@@ -1,3 +1,4 @@
+const { shuffleArray } = require('../until/arrays');
 const NotFoundError = require('../errors/NotFoundError');
 const ValidationError = require('../errors/ValidationError');
 const {
@@ -9,6 +10,25 @@ const {
 } = require('../models');
 
 const { createSongPlaylist } = require('../until/songPlaylist');
+
+// const playlist = [
+//   {
+//     id: 1,
+//     ...information,
+//     isFollowed: true, // or false -> check
+//     owner: {
+//       // user own playlist
+//       id: 15,
+//       ...information,
+//     },
+//     songs: [
+//       {
+//         id: 23,
+//         ...information,
+//       },
+//     ],
+//   },
+// ];
 
 class PlayListController {
   async createPlaylist(req, response) {
@@ -95,35 +115,93 @@ class PlayListController {
     }
   }
 
+  // chưa phân trang
+  // sai format -> xem dòng 13
+
   async getAllPlaylist(req, response) {
     const userId = req.userId;
 
-    const currentPage = req.query.page || 1;
-    var itemsPerPage = req.query.per_page || 10; // Số bản ghi trên mỗi trang
-    if (itemsPerPage > 100) itemsPerPage = 100;
-
-    const offset = (currentPage - 1) * itemsPerPage; // Tính OFFSET
-
-    const page = Number(req.query.page);
-    const perPage = Number(req.query.per_page);
-    const erros = [];
-
-    if (!page) erros.push({ page: 'page not validation' });
-    if (!perPage) erros.push({ perPage: 'per_page not validation' });
-    if (erros.length > 0) throw new ValidationError(erros);
-
-    if (userId) {
+    try {
       const playlists = await PlayListModel.findAll({
-        limit: Number(itemsPerPage),
-        offset: offset,
-        order: [['createAt', 'DESC']],
+        include: [
+          {
+            model: UserModel,
+            attributes: {
+              exclude: ['password'],
+            },
+          },
+        ],
       });
-      return response.status(200).json({
-        result: true,
-        data: playlists,
+
+      const idPlaylists = playlists.map((playlist) => {
+        return playlist.id;
       });
-    } else {
-      throw new ValidationError({ message: 'User not found' });
+
+      const follows = await FollowPlaylistModel.findAll({
+        where: {
+          playlistId: idPlaylists,
+        },
+        include: [
+          {
+            model: UserModel,
+            as: 'followingUser',
+            attributes: {
+              exclude: ['password'],
+            },
+          },
+        ],
+      });
+
+      if (userId) {
+        var result = playlists.map((playlist) => {
+          playlist = playlist.toJSON();
+
+          playlist.owner = playlist.user;
+          delete playlist.user;
+
+          // kiểm tra user có follow playlist hay không
+
+          playlist.isFollowed = follows.find(
+            (follow) => follow.userId === userId && playlist.id === follow.playlistId,
+          )
+            ? true
+            : false;
+
+          var count = follows.reduce((followCount, follow) => {
+            if (follow.playlistId === playlist.id) return followCount + 1;
+            else return followCount;
+          }, 0);
+
+          playlist.followCount = count;
+          return playlist;
+        });
+        // Xáo trộn mảng
+        result = shuffleArray(result);
+
+        return response.status(200).json({ data: result });
+      }
+
+      var result = playlists.map((playlist) => {
+        playlist = playlist.toJSON();
+
+        playlist.owner = playlist.user;
+        delete playlist.user;
+
+        var count = follows.reduce((followCount, follow) => {
+          if (follow.playlistId === playlist.id) return followCount + 1;
+          else return followCount;
+        }, 0);
+
+        playlist.followCount = count;
+        return playlist;
+      });
+      // Xáo trộn mảng
+      result = shuffleArray(result);
+
+      return response.status(200).json({ data: result });
+    } catch (error) {
+      console.log(error);
+      throw error;
     }
   }
 
