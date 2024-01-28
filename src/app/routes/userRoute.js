@@ -4,6 +4,7 @@ const UserController = require('../controllers/userController');
 
 const isLoginMiddleware = require('../middlewares/isLoginMiddleware');
 const encodedToken = require('../middlewares/encodedToken');
+const userController = require('../controllers/userController');
 
 const router = express.Router();
 
@@ -29,6 +30,7 @@ router.put('/change-password', isLoginMiddleware, UserController.changePassWord)
 router.get('/get-profile', isLoginMiddleware, UserController.getMyProfile);
 router.get('/search', encodedToken, UserController.searchUser);
 
+router.get('/get-users', encodedToken, userController.getListUse);
 router.get('/', encodedToken, UserController.findUser);
 
 module.exports = router;

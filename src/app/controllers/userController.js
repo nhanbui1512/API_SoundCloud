@@ -1,4 +1,4 @@
-const { UserModel, SongModel, FollowUserModel } = require('../models');
+const { UserModel, SongModel, FollowUserModel, sequelize } = require('../models');
 const ValidationError = require('../errors/ValidationError');
 const NotFoundError = require('../errors/NotFoundError');
 const { isValidEmail } = require('../until/email');
@@ -244,6 +244,50 @@ class UserController {
 
       user.isFollowed = followers.find((follow) => (follow.user_id = userId)) ? true : false;
 
+      return user;
+    });
+
+    return response.status(200).json({ data: users });
+  }
+
+  // GET /user
+
+  async getListUse(req, response) {
+    const userId = req.userId;
+    var quantity = Number(req.query.quantity);
+    if (!quantity) throw new ValidationError({ quantity: 'Not validation' });
+
+    if (quantity > 50) quantity = 50;
+
+    var users = await UserModel.findAll({
+        include: [
+          {
+            model: SongModel,
+          },
+        ],
+        attributes: {
+          exclude: ['password'],
+        },
+        limit: quantity,
+        order: sequelize.random(),
+      }),
+      users = multiSqlizeToJSON(users);
+
+    const user_ids = users.map((user) => user.id);
+
+    var followers = await FollowUserModel.findAll({
+        where: {
+          followed: user_ids,
+        },
+      }),
+      followers = multiSqlizeToJSON(followers);
+
+    users = users.map((user) => {
+      user.trackNumber = user.songs.length;
+
+      user.followerNumber = followers.filter((follower) => follower.followed === user.id).length;
+
+      user.isFollowed = followers.find((follower) => follower.user_id === userId) ? true : false;
       return user;
     });
 
