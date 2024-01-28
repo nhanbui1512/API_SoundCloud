@@ -191,7 +191,7 @@ class PlayListController {
           playlist.followCount = count;
           return playlist;
         });
-        console.log(result);
+
         // Xáo trộn mảng
         result = shuffleArray(result);
 
