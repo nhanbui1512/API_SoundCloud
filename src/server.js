@@ -7,6 +7,7 @@ const route = require('./app/routes');
 const cors = require('cors');
 const errorHandle = require('./app/middlewares/errorHandler');
 const { sequelize } = require('./app/models');
+require('./config/cloudinaryService'); // config dinary
 
 app.use(cors());
 app.use(express.json());

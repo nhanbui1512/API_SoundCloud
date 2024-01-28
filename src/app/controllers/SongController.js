@@ -9,6 +9,8 @@ const {
   SongPlaylistModel,
 } = require('../models');
 
+const cloudinary = require('cloudinary').v2;
+
 const ValidationError = require('../errors/ValidationError');
 const NotfoundError = require('../errors/NotFoundError');
 const { multiSqlizeToJSON, SqlizeToJSON } = require('../until/sequelize');
@@ -23,8 +25,6 @@ class SongController {
     const genreId = Number(req.body.genreId);
 
     const errors = [];
-
-    // fake iduser
 
     const userid = req.userId;
 
@@ -52,19 +52,32 @@ class SongController {
     const song = req.files.song[0];
     const thumbNail = req.files.thumbNail[0];
 
+    // console.log(song);
+    // console.log(thumbNail);
     //Tính toán số giây của file nhạc
+
+    const imageUploaded = await cloudinary.uploader.upload(thumbNail.path, {
+      folder: 'images', // Tên thư mục bạn muốn sử dụng
+      resource_type: 'auto',
+    });
+
     mp3Duration(song.path, async function (err, duration) {
       if (err) {
         console.error(err.message);
         return;
       }
 
+      const songUploaded = await cloudinary.uploader.upload(song.path, {
+        folder: 'audios', // Tên thư mục bạn muốn sử dụng
+        resource_type: 'auto',
+      });
+
       const newSong = await SongModel.create({
         name: name,
         description: description,
         artistName: artistName,
-        linkFile: song.filename,
-        thumbNail: thumbNail.filename,
+        linkFile: songUploaded.url,
+        thumbNail: imageUploaded.url,
         duration: duration,
       });
 

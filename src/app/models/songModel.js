@@ -33,6 +33,7 @@ const Song = (sequelize) => {
       type: DataTypes.STRING,
       get() {
         const filename = this.getDataValue('thumbNail');
+        if (filename.startsWith('http://res.cloudinary.com')) return filename;
         return `${process.env.domain}/uploads/images/${filename}`;
       },
     },
@@ -40,6 +41,7 @@ const Song = (sequelize) => {
       type: DataTypes.STRING,
       get() {
         const filename = this.getDataValue('linkFile');
+        if (filename.startsWith('http://res.cloudinary.com')) return filename;
         return `${process.env.domain}/uploads/audios/${filename}`;
       },
     },
