@@ -130,32 +130,6 @@ class SongController {
         },
       });
 
-      if (userId) {
-        let result = songs.map((song) => {
-          song = song.toJSON();
-
-          song.owner = song.user;
-          delete song.user;
-          // Kiểm tra user có like bài hát hay không
-          song.isLiked = likes.find((like) => like.userId === userId && song.id === like.songId)
-            ? true
-            : false;
-
-          var count = likes.reduce((likeCount, like) => {
-            if (like.songId == song.id) return likeCount + 1;
-            else return likeCount;
-          }, 0);
-
-          song.likeCount = count;
-          return song;
-        });
-
-        // Xáo trộn mảng
-        result = shuffleArray(result);
-
-        return response.status(200).json({ data: result });
-      }
-
       let result = songs.map((song) => {
         song = song.toJSON();
 
@@ -168,6 +142,11 @@ class SongController {
         }, 0);
 
         song.likeCount = count;
+
+        song.isLiked = likes.find((like) => like.userId === userId && song.id === like.songId)
+          ? true
+          : false;
+
         return song;
       });
       // Xáo trộn mảng

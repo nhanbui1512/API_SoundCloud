@@ -27,7 +27,7 @@ router.post('/register', UserController.registerUser);
 router.put('/update', isLoginMiddleware, UserController.updateUser);
 router.put('/change-password', isLoginMiddleware, UserController.changePassWord);
 router.get('/get-profile', isLoginMiddleware, UserController.getMyProfile);
-router.get('/search', UserController.searchUser);
+router.get('/search', encodedToken, UserController.searchUser);
 
 router.get('/', encodedToken, UserController.findUser);
 

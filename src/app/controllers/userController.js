@@ -193,11 +193,10 @@ class UserController {
       user.followerNumber = follower.count;
       user.followingNumber = following.count;
       // Nếu người dùng có gửi token lên thì kiểm tra xem đã follow user tìm kiếm hay chưa
-      if (userId !== null) {
-        follower = multiSqlizeToJSON(follower.rows);
-        const isFollowed = follower.find((follower) => follower.user_id === userId);
-        user.isFollowed = isFollowed ? true : false;
-      }
+
+      follower = multiSqlizeToJSON(follower.rows);
+      const isFollowed = follower.find((follower) => follower.user_id === userId);
+      user.isFollowed = isFollowed ? true : false;
     }
 
     return response.status(200).json({ data: user });
@@ -205,6 +204,8 @@ class UserController {
 
   // GET   /user/search?value=timkiemuser
   async searchUser(req, response) {
+    const userId = req.userId || null;
+
     const value = req.query.value;
     if (!value || value.trim() === '') throw new ValidationError({ value: 'Not validation' });
 
@@ -240,6 +241,8 @@ class UserController {
         if (follow.followed === user.id) return total + 1;
         else return total;
       }, 0);
+
+      user.isFollowed = followers.find((follow) => (follow.user_id = userId)) ? true : false;
 
       return user;
     });
