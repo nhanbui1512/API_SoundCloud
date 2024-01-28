@@ -10,6 +10,7 @@ const {
 } = require('../models');
 
 const { createSongPlaylist } = require('../until/songPlaylist');
+const { multiSqlizeToJSON } = require('../until/sequelize');
 
 class PlayListController {
   async createPlaylist(req, response) {
@@ -96,30 +97,17 @@ class PlayListController {
     }
   }
 
-  // chưa phân trang
-  // sai format -> xem dòng 13
-
   async getAllPlaylist(req, response) {
+    const errors = [];
     const userId = req.userId;
+    const pageCurrent = Number(req.query.page) || 1;
+    const per_page = Number(req.query.per_page) || 10;
 
-    // const playlist = [
-    //   {
-    //     id: 1,
-    //     ...information,
-    //     isFollowed: true, // or false -> check
-    //     owner: {
-    //       // user own playlist
-    //       id: 15,
-    //       ...information,
-    //     },
-    //     songs: [
-    //       {
-    //         id: 23,
-    //         ...information,
-    //       },
-    //     ],
-    //   },
-    // ];
+    if (per_page > 100) per_page = 100;
+    const offset = (pageCurrent - 1) * per_page;
+    if (!pageCurrent) errors.push({ pageCurrent: 'Page current not validation' });
+    if (!per_page) errors.push({ per_page: 'per_page not validation' });
+    if (errors.length > 0) throw new ValidationError(errors);
 
     try {
       const playlists = await PlayListModel.findAll({
@@ -131,6 +119,12 @@ class PlayListController {
             },
           },
         ],
+        attributes: {
+          exclude: ['userId'],
+        },
+        limit: per_page,
+        offset: offset,
+        order: [['createAt', 'DESC']],
       });
 
       const idPlaylists = playlists.map((playlist) => {
@@ -153,9 +147,31 @@ class PlayListController {
       });
 
       if (userId) {
-        var result = playlists.map((playlist) => {
+        // Lấy ra các bài hát có trong playlist
+        var songs = await SongPlaylistModel.findAll({
+          where: {
+            playlistId: idPlaylists,
+          },
+          include: [
+            {
+              model: SongModel,
+              as: 'song',
+            },
+          ],
+        });
+        songs = multiSqlizeToJSON(songs);
+
+        var playlistSongs = playlists.map((playlist) => {
           playlist = playlist.toJSON();
 
+          playlist.songs = [];
+          songs.map((song) => {
+            playlist.songs.push(song.song);
+          });
+          return playlist;
+        });
+
+        var result = playlistSongs.map((playlist) => {
           playlist.owner = playlist.user;
           delete playlist.user;
 
@@ -175,15 +191,14 @@ class PlayListController {
           playlist.followCount = count;
           return playlist;
         });
+        console.log(result);
         // Xáo trộn mảng
         result = shuffleArray(result);
 
         return response.status(200).json({ data: result });
       }
 
-      var result = playlists.map((playlist) => {
-        playlist = playlist.toJSON();
-
+      var result = playlistSongs.map((playlist) => {
         playlist.owner = playlist.user;
         delete playlist.user;
 
