@@ -11,25 +11,6 @@ const {
 
 const { createSongPlaylist } = require('../until/songPlaylist');
 
-// const playlist = [
-//   {
-//     id: 1,
-//     ...information,
-//     isFollowed: true, // or false -> check
-//     owner: {
-//       // user own playlist
-//       id: 15,
-//       ...information,
-//     },
-//     songs: [
-//       {
-//         id: 23,
-//         ...information,
-//       },
-//     ],
-//   },
-// ];
-
 class PlayListController {
   async createPlaylist(req, response) {
     const userId = req.userId;
@@ -120,6 +101,25 @@ class PlayListController {
 
   async getAllPlaylist(req, response) {
     const userId = req.userId;
+
+    // const playlist = [
+    //   {
+    //     id: 1,
+    //     ...information,
+    //     isFollowed: true, // or false -> check
+    //     owner: {
+    //       // user own playlist
+    //       id: 15,
+    //       ...information,
+    //     },
+    //     songs: [
+    //       {
+    //         id: 23,
+    //         ...information,
+    //       },
+    //     ],
+    //   },
+    // ];
 
     try {
       const playlists = await PlayListModel.findAll({
