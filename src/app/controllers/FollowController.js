@@ -143,21 +143,28 @@ class Follower {
         playlist: 'Not found playlist',
       });
 
-    const following = await FollowPlaylistModel.findOrCreate({
-      where: {
-        userId: userId,
-        playlistId: playlistId,
-      },
-    });
+    if (userId != playlist.toJSON().userId) {
+      const following = await FollowPlaylistModel.findOrCreate({
+        where: {
+          userId: userId,
+          playlistId: playlistId,
+        },
+      });
 
-    const result = following[0].toJSON();
+      const result = following[0].toJSON();
 
-    result.user = user;
-    result.playlist = playlist;
+      result.user = user;
+      result.playlist = playlist;
 
-    return response.send({
-      data: result,
-    });
+      return response.send({
+        data: result,
+      });
+    } else {
+      return response.status(400).json({
+        result: false,
+        message: 'The playlist are user-owned',
+      });
+    }
   }
 
   async Unfollowplaylist(req, response) {

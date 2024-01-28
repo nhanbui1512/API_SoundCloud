@@ -1,3 +1,4 @@
+const { shuffleArray } = require('../until/arrays');
 const NotFoundError = require('../errors/NotFoundError');
 const ValidationError = require('../errors/ValidationError');
 const {
@@ -96,15 +97,98 @@ class PlayListController {
   async getAllPlaylist(req, response) {
     const userId = req.userId;
 
-    if (userId) {
-      const playlists = await PlayListModel.findAll();
-      return response.status(200).json({
-        result: true,
-        data: playlists,
+    try {
+      const playlists = await PlayListModel.findAll({
+        include: [
+          {
+            model: UserModel,
+            attributes: {
+              exclude: ['password'],
+            },
+          },
+        ],
       });
-    } else {
-      throw new ValidationError({ message: 'User not found' });
+
+      const idPlaylists = playlists.map((playlist) => {
+        return playlist.id;
+      });
+
+      const follows = await FollowPlaylistModel.findAll({
+        where: {
+          playlistId: idPlaylists,
+        },
+        include: [
+          {
+            model: UserModel,
+            as: 'followingUser',
+            attributes: {
+              exclude: ['password'],
+            },
+          },
+        ],
+      });
+
+      if (userId) {
+        var result = playlists.map((playlist) => {
+          playlist = playlist.toJSON();
+
+          playlist.owner = playlist.user;
+          delete playlist.user;
+
+          // kiểm tra user có follow playlist hay không
+
+          playlist.isFollowed = follows.find(
+            (follow) => follow.userId === userId && playlist.id === follow.playlistId,
+          )
+            ? true
+            : false;
+
+          var count = follows.reduce((followCount, follow) => {
+            if (follow.playlistId === playlist.id) return followCount + 1;
+            else return followCount;
+          }, 0);
+
+          playlist.followCount = count;
+          return playlist;
+        });
+        // Xáo trộn mảng
+        result = shuffleArray(result);
+
+        return response.status(200).json({ data: result });
+      }
+
+      var result = playlists.map((playlist) => {
+        playlist = playlist.toJSON();
+
+        playlist.owner = playlist.user;
+        delete playlist.user;
+
+        var count = follows.reduce((followCount, follow) => {
+          if (follow.playlistId === playlist.id) return followCount + 1;
+          else return followCount;
+        }, 0);
+
+        playlist.followCount = count;
+        return playlist;
+      });
+      // Xáo trộn mảng
+      result = shuffleArray(result);
+
+      return response.status(200).json({ data: result });
+    } catch (error) {
+      console.log(error);
+      throw error;
     }
+
+    // if (userId) {
+    //   const playlists = await PlayListModel.findAll();
+    //   return response.status(200).json({
+    //     result: true,
+    //     data: playlists,
+    //   });
+    // } else {
+    //   throw new ValidationError({ message: 'User not found' });
+    // }
   }
 
   async getPlaylistById(req, response) {
