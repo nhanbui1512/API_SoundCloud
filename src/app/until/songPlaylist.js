@@ -61,14 +61,6 @@ const createSongPlaylist = async (idSongs, idPlaylist, typef = 'add') => {
             }
           });
 
-          // var songPlaylistIds = [];
-          // idSongs.map((songId) => {
-          //   songPlaylistIds.push({
-          //     songId: songId,
-          //     playlistId: Number(idPlaylist),
-          //   });
-          // });
-          // console.log(songPlaylistIds);
           await SongPlaylistModel.destroy({
             where: {
               songId: idSongs,
