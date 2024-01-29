@@ -2,6 +2,7 @@ const { UserModel, SongModel, FollowUserModel } = require('../models');
 const ValidationError = require('../errors/ValidationError');
 const NotFoundError = require('../errors/NotFoundError');
 const { isValidEmail } = require('../until/email');
+const { checkPass } = require('../until/checkPass');
 const { SqlizeToJSON, multiSqlizeToJSON } = require('../until/sequelize');
 const { Op } = require('sequelize');
 
@@ -25,19 +26,27 @@ class UserController {
         email: 'Email not validation',
       });
 
-    const user = await UserModel.findOne({
-      where: {
-        email: data.email,
-      },
-    });
+    const checkpass = await checkPass(data.password);
+    if (checkpass) {
+      const user = await UserModel.findOne({
+        where: {
+          email: data.email,
+        },
+      });
 
-    if (user) {
-      throw new ValidationError({ email: 'Email is exist' });
+      if (user) {
+        throw new ValidationError({ email: 'Email is exist' });
+      } else {
+        const newUser = await UserModel.create(data);
+        return response.status(200).json({
+          result: true,
+          newUser,
+        });
+      }
     } else {
-      const newUser = await UserModel.create(data);
-      return response.status(200).json({
+      return response.status(422).json({
         result: true,
-        newUser,
+        message: 'Password unsuccessful',
       });
     }
   }
@@ -78,7 +87,6 @@ class UserController {
     const ownPass = req.body.ownPassWord;
     const newPass = req.body.newPassWord;
     const confirmPass = req.body.confirmPassWord;
-    console.log(newPass, confirmPass, ownPass);
     if (!ownPass || !newPass || !confirmPass) {
       return response.status(400).json({
         result: false,
@@ -98,13 +106,22 @@ class UserController {
         },
       });
       if (user) {
-        user.password = newPass;
-        const newUser = await user.save();
-        return response.status(200).json({
-          result: true,
-          data: { ...newUser.dataValues, password: null },
-          message: 'User was update pass successfully',
-        });
+        const checkpass = await checkPass(newPass);
+        console.log(checkpass);
+        if (checkpass) {
+          user.password = newPass;
+          const newUser = await user.save();
+          return response.status(200).json({
+            result: true,
+            data: { ...newUser.dataValues, password: null },
+            message: 'User was update pass successfully',
+          });
+        } else {
+          return response.status(422).json({
+            result: true,
+            message: 'Password unsuccessful',
+          });
+        }
       } else {
         return response.status(400).json({
           result: false,

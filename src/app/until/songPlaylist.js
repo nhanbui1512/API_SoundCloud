@@ -1,4 +1,4 @@
-const { SongPlaylistModel, PlayListModel, SongModel } = require('../models');
+const { SongPlaylistModel, SongModel } = require('../models');
 const { multiSqlizeToJSON } = require('./sequelize');
 
 const createSongPlaylist = async (idSongs, idPlaylist, typef = 'add') => {
