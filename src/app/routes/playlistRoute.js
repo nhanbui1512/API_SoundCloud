@@ -13,6 +13,7 @@ router.get('/playlist-followed', isLoginMiddleware, PlaylistController.getUserFo
 router.post('/create', isLoginMiddleware, PlaylistController.createPlaylist);
 router.post('/add-songs', isLoginMiddleware, PlaylistController.addSongsToPlaylist);
 
+router.delete('/remove-songs', isLoginMiddleware, PlaylistController.removeSongsToPlaylist);
 router.delete('/', isLoginMiddleware, PlaylistController.deletePlaylistById);
 
 module.exports = router;

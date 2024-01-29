@@ -97,6 +97,52 @@ class PlayListController {
     }
   }
 
+  async removeSongsToPlaylist(req, response) {
+    const userId = req.userId;
+    const idPlaylist = req.query.idPlaylist;
+    const idSongs = req.body.idSongs;
+    if (!idPlaylist) throw new ValidationError({ message: 'IdPlaylist must be attached' });
+
+    const playList = await PlayListModel.findOne({
+      where: {
+        userId: userId,
+        id: idPlaylist,
+      },
+    });
+
+    if (playList === null) throw new NotFoundError({ playlist: 'Not found' });
+
+    await createSongPlaylist(idSongs, idPlaylist, 'delete'); // add relationship song playlist
+
+    const PlayLists = await SongPlaylistModel.findAll({
+      where: {
+        playlistId: idPlaylist,
+      },
+      include: [
+        {
+          model: SongModel,
+          as: 'song',
+        },
+        {
+          model: PlayListModel,
+          as: 'playlist',
+        },
+      ],
+    });
+
+    if (PlayLists) {
+      return response.status(200).json({
+        result: true,
+        data: PlayLists,
+      });
+    } else {
+      return response.status(422).json({
+        result: false,
+        message: 'Playlist not found',
+      });
+    }
+  }
+
   async getAllPlaylist(req, response) {
     const errors = [];
     const userId = req.userId;
@@ -222,21 +268,32 @@ class PlayListController {
 
   async getPlaylistById(req, response) {
     const idPlaylist = req.query.idPlaylist;
-    const playlist = await SongPlaylistModel.findOne({
+
+    var playlist = await PlayListModel.findOne({
       where: {
-        playlistId: idPlaylist,
+        id: idPlaylist,
+      },
+    });
+    // Lấy ra các bài hát của playlist
+    var songs = await SongPlaylistModel.findAll({
+      where: {
+        playlistId: playlist.toJSON().id,
       },
       include: [
-        {
-          model: PlayListModel,
-          as: 'playlist',
-        },
         {
           model: SongModel,
           as: 'song',
         },
       ],
     });
+
+    songs = multiSqlizeToJSON(songs);
+    playlist = playlist.toJSON();
+    playlist.songs = [];
+    songs.map((song) => {
+      playlist.songs.push(song.song);
+    });
+
     if (playlist) {
       return response.status(200).json({
         result: true,
