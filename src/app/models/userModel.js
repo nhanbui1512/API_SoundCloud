@@ -41,6 +41,7 @@ const User = (sequelize) => {
       get() {
         const fileName = this.getDataValue('avatar');
         if (fileName === null) return fileName;
+        if (fileName.startsWith('http://res.cloudinary.com')) return fileName;
         return `${process.env.domain}/uploads/images/${fileName}`;
       },
     },
@@ -59,6 +60,16 @@ const User = (sequelize) => {
     },
     updateAt: {
       type: DataTypes.DATE,
+    },
+
+    updateAtFormatTime: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        const time = this.getDataValue(`updateAt`);
+        if (time === null) return time;
+        const timeFormated = formatTime(time);
+        return `${timeFormated.hour}:${timeFormated.minute}:${timeFormated.second} ${timeFormated.day}/${timeFormated.month}/${timeFormated.year}`;
+      },
     },
   });
 };

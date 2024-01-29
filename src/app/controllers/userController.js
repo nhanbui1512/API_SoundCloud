@@ -5,6 +5,8 @@ const { isValidEmail } = require('../until/email');
 const { SqlizeToJSON, multiSqlizeToJSON } = require('../until/sequelize');
 const { Op } = require('sequelize');
 
+const cloudinary = require('cloudinary').v2;
+
 class UserController {
   // POST    /user/register
   async registerUser(req, response, next) {
@@ -44,32 +46,49 @@ class UserController {
 
   // PUT  /user/update
   async updateUser(req, response, next) {
-    const userId = req.userId;
-    console.log(userId);
+    const file = req.file;
 
-    const user = await UserModel.findOne({
-      where: {
-        id: userId,
+    const userId = req.userId;
+
+    const userName = req.body.userName;
+    const city = req.body.city;
+    const country = req.body.country;
+    const bio = req.body.bio;
+
+    const user = await UserModel.findByPk(userId);
+
+    if (userName && userName.trim() !== '') user.userName = userName;
+    if (city && city.trim() !== '') user.city = city;
+    if (country && country.trim() !== '') user.country = country;
+    if (bio && bio.trim() !== '') user.bio = bio;
+
+    if (file) {
+      // Các tùy chọn chuyển đổi ảnh và tải lên
+
+      const uploadOptions = {
+        transformation: {
+          width: 400, // Chiều rộng mới
+          height: 400, // Chiều cao mới
+          crop: 'fill', // Phương pháp cắt ảnh
+          format: 'jpg', // Định dạng mới
+        },
+        folder: 'avatars', // Thư mục trên Cloudinary để lưu ảnh
+        resource_type: 'auto',
+      };
+      const uploaded = await cloudinary.uploader.upload(file.path, uploadOptions);
+      user.avatar = uploaded.url;
+    }
+
+    user.updateAt = new Date();
+    await user.save();
+
+    const newData = await UserModel.findByPk(userId, {
+      attributes: {
+        exclude: ['password'],
       },
     });
 
-    if (user) {
-      user.userName = req.body.userName;
-      user.city = req.body.city || null;
-      user.country = req.body.country || null;
-      user.bio = req.body.bio || null;
-
-      const newUser = await user.save();
-      return response.status(200).json({
-        result: true,
-        data: { ...newUser.dataValues, password: null },
-        message: 'Update successfully',
-      });
-    } else {
-      throw new NotFoundError({
-        message: 'User not found!',
-      });
-    }
+    return response.status(200).json({ isSuccess: true, data: newData });
   }
 
   // PUT  /user/change-password
@@ -251,7 +270,6 @@ class UserController {
   }
 
   // GET /user
-
   async getListUse(req, response) {
     const userId = req.userId;
     var quantity = Number(req.query.quantity);
