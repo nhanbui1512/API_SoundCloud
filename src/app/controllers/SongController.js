@@ -16,6 +16,7 @@ const NotfoundError = require('../errors/NotFoundError');
 const { multiSqlizeToJSON, SqlizeToJSON } = require('../until/sequelize');
 const { shuffleArray } = require('../until/arrays');
 const { Op } = require('sequelize');
+const { DeleteFile } = require('../until/manageFile');
 
 class SongController {
   async createSong(req, response) {
@@ -72,18 +73,26 @@ class SongController {
         resource_type: 'auto',
       });
 
-      const newSong = await SongModel.create({
-        name: name,
-        description: description,
-        artistName: artistName,
-        linkFile: songUploaded.url,
-        thumbNail: imageUploaded.url,
-        duration: duration,
-      });
+      try {
+        const newSong = await SongModel.create({
+          name: name,
+          description: description,
+          artistName: artistName,
+          linkFile: songUploaded.url,
+          thumbNail: imageUploaded.url,
+          duration: duration,
+        });
 
-      await user.addSong(newSong);
-      await genre.addSong(newSong);
-      return response.status(200).json({ isSuccess: true, data: newSong });
+        await user.addSong(newSong);
+        await genre.addSong(newSong);
+
+        await DeleteFile(song.path);
+        await DeleteFile(thumbNail.path);
+
+        return response.status(200).json({ isSuccess: true, data: newSong });
+      } catch (error) {
+        throw error;
+      }
     });
   }
 
