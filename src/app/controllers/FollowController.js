@@ -1,30 +1,76 @@
 const NotFoundError = require('../errors/NotFoundError');
 const ValidationError = require('../errors/ValidationError');
 
-const { FollowUserModel, UserModel, FollowPlaylistModel, PlayListModel } = require('../models');
+const {
+  FollowUserModel,
+  UserModel,
+  FollowPlaylistModel,
+  PlayListModel,
+  SongModel,
+  UserLikeSongModel,
+} = require('../models');
+const { multiSqlizeToJSON } = require('../until/sequelize');
 
 class Follower {
   async getMyFollowing(req, response, next) {
-    const userFollowers = await FollowUserModel.findAndCountAll({
-      where: {
-        user_id: 1,
-      },
-      include: {
-        model: UserModel,
-        as: 'following',
-        attributes: {
-          exclude: ['password'],
+    const userId = req.userId;
+    var userFollowers = await FollowUserModel.findAll({
+        where: {
+          user_id: userId,
         },
-      },
-      attributes: {
-        exclude: ['user_id', 'followed'],
-      },
+        include: {
+          model: UserModel,
+          as: 'following',
+          attributes: {
+            exclude: ['password'],
+          },
+        },
+        attributes: {
+          exclude: ['user_id'],
+        },
+      }),
+      userFollowers = multiSqlizeToJSON(userFollowers);
+
+    const followingIds = userFollowers.map((follower) => follower.id);
+    // console.log(followingIds); // Id những người mình follow
+
+    var songs = await SongModel.findAll({
+        // những bài hát của những người mình follow
+        where: {
+          ownerId: followingIds,
+        },
+      }),
+      songs = multiSqlizeToJSON(songs);
+
+    const songIds = songs.map((song) => song.id); // id những bài hát của những người mình follow
+    // console.log(songIds);
+    var userLikeSongs = await UserLikeSongModel.findAll({
+        where: {
+          songId: songIds,
+        },
+      }),
+      userLikeSongs = multiSqlizeToJSON(userLikeSongs);
+
+    songs.map((song) => {
+      song.isLiked = userLikeSongs.find(
+        (liked) => liked.songId === song.id && liked.userId === userId,
+      )
+        ? true
+        : false;
+      song.likeCount = userLikeSongs.filter((liked) => liked.songId === song.id).length;
+
+      return song;
+    });
+
+    userFollowers = userFollowers.map((follower) => {
+      follower.songs = songs.filter((song) => song.ownerId === follower.id);
+      return follower;
     });
 
     return response.status(200).json({
       data: {
-        count: userFollowers.count,
-        data: userFollowers.rows,
+        count: userFollowers.length,
+        data: userFollowers,
       },
     });
   }
