@@ -129,7 +129,7 @@ class UserController {
       });
       if (user) {
         const checkpass = await checkPass(newPass);
-        console.log(checkpass);
+
         if (checkpass) {
           user.password = newPass;
           const newUser = await user.save();
