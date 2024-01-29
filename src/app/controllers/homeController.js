@@ -1,6 +1,6 @@
 const { error } = require('console');
 const { UserModel, SongModel } = require('../models');
-const cloudinary = require('cloudinary').v2;
+// const cloudinary = require('cloudinary').v2;
 
 class HomeController {
   async index(req, res) {

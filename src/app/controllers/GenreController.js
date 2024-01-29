@@ -1,5 +1,6 @@
 const ValidationError = require('../errors/ValidationError');
-const { GenreModel } = require('../models');
+const { GenreModel, SongModel, UserModel, UserLikeSongModel } = require('../models');
+const { SqlizeToJSON, multiSqlizeToJSON } = require('../until/sequelize');
 
 class GenreControler {
   async getAll(req, response) {
@@ -38,6 +39,47 @@ class GenreControler {
         message: 'Name is existed',
       });
     }
+  }
+
+  async getSongsById(req, response) {
+    const id = Number(req.query.id);
+    const userId = req.userId;
+
+    if (!id) throw new ValidationError({ id: 'Not validation' });
+
+    var data = await GenreModel.findOne({
+        where: {
+          id: id,
+        },
+        include: {
+          model: SongModel,
+          include: {
+            model: UserModel,
+            attributes: {
+              exclude: ['password'],
+            },
+          },
+        },
+      }),
+      data = SqlizeToJSON(data);
+
+    const songIds = data.songs.map((song) => song.id);
+
+    var likedSongs = await UserLikeSongModel.findAll({
+        where: {
+          songId: songIds,
+        },
+      }),
+      likedSongs = multiSqlizeToJSON(likedSongs);
+
+    data.songs = data.songs.map((song) => {
+      song.isLiked = likedSongs.find((liked) => liked.userId === userId && liked.songId === song.id)
+        ? true
+        : false;
+      return song;
+    });
+
+    return response.status(200).json({ data: data });
   }
 }
 
