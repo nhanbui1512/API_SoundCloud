@@ -55,7 +55,9 @@ class PlayListController {
     const userId = req.userId;
     const idPlaylist = req.query.idPlaylist;
     const idSongs = req.body.idSongs;
+    const name = req.body.name;
     if (!idPlaylist) throw new ValidationError({ message: 'IdPlaylist must be attached' });
+    if (!name) throw new ValidationError({ message: 'name must be attached' });
 
     const playList = await PlayListModel.findOne({
       where: {
@@ -65,6 +67,11 @@ class PlayListController {
     });
 
     if (playList === null) throw new NotFoundError({ playlist: 'Not found' });
+
+    if (playList) {
+      playList.name = name;
+      await playList.save();
+    }
 
     await createSongPlaylist(idSongs, idPlaylist); // add relationship song playlist
 
