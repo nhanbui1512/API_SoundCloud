@@ -403,7 +403,10 @@ class SongController {
     const userId = req.userId;
 
     var songs = await SongModel.findAll({
-        order: [['numberOfListen', 'DESC']],
+        order: [
+          ['numberOfListen', 'DESC'],
+          ['createAt', 'DESC'],
+        ],
         include: [
           {
             model: UserModel,
@@ -425,7 +428,7 @@ class SongController {
         return song;
       });
 
-      response.status(200).json({ data: songs });
+      return response.status(200).json({ data: songs });
     }
 
     const songIds = songs.map((song) => song.id);
@@ -443,7 +446,39 @@ class SongController {
       return song;
     });
 
-    return response.status(200).json(songs);
+    return response.status(200).json({ data: songs });
+  }
+
+  async getSongsLiked(req, response) {
+    const userId = req.userId;
+
+    var songs = await UserLikeSongModel.findAll({
+        where: {
+          userId: userId,
+        },
+        include: {
+          model: SongModel,
+          as: 'songOfUserLike',
+          include: {
+            model: UserModel,
+            attributes: {
+              exclude: ['password'],
+            },
+          },
+        },
+        order: [['createAt', 'DESC']],
+      }),
+      songs = multiSqlizeToJSON(songs);
+
+    songs = songs.map((song) => {
+      song.songOfUserLike.owner = song.songOfUserLike.user;
+      delete song.songOfUserLike.user;
+      song.song = song.songOfUserLike;
+      delete song.songOfUserLike;
+      return song;
+    });
+
+    return response.status(200).json({ data: songs });
   }
 }
 
