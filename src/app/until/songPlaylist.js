@@ -10,7 +10,6 @@ const createSongPlaylist = async (idSongs, idPlaylist, typef = 'add') => {
           },
         }),
         songs = multiSqlizeToJSON(songs);
-
       var songIds = songs.map((song) => song.id);
 
       // kiểm tra xem song đã tồn tại trong play list
@@ -42,16 +41,15 @@ const createSongPlaylist = async (idSongs, idPlaylist, typef = 'add') => {
               idSongs.push(songId);
             }
           });
-        }
-
-        var songPlaylistIds = [];
-        idSongs.map((songId) => {
-          songPlaylistIds.push({
-            songId: songId,
-            playlistId: Number(idPlaylist),
+          var songPlaylistIds = [];
+          idSongs.map((songId) => {
+            songPlaylistIds.push({
+              songId: songId,
+              playlistId: Number(idPlaylist),
+            });
           });
-        });
-        await SongPlaylistModel.bulkCreate(songPlaylistIds);
+          await SongPlaylistModel.bulkCreate(songPlaylistIds);
+        }
       } else {
         if (songIds.length > 0) {
           var idSongs = [];
@@ -61,11 +59,14 @@ const createSongPlaylist = async (idSongs, idPlaylist, typef = 'add') => {
             }
           });
 
+          // idSongs.map(async (idSong) => {
           await SongPlaylistModel.destroy({
             where: {
               songId: idSongs,
+              playlistId: idPlaylist,
             },
           });
+          // })
         }
       }
     }

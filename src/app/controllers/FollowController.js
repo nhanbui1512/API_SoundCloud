@@ -65,6 +65,7 @@ class Follower {
 
     userFollowers = userFollowers.map((follower) => {
       follower.songs = songs.filter((song) => song.ownerId === follower.id);
+      follower.following.isFollow = true;
       return follower;
     });
 
