@@ -41,14 +41,14 @@ class UserController {
       } else {
         const newUser = await UserModel.create(data);
         return response.status(200).json({
-          result: true,
+          isSuccess: true,
           newUser,
         });
       }
     } else {
       return response.status(422).json({
-        result: true,
-        message: 'Password unsuccessful',
+        isSuccess: true,
+        message: 'Password not validation',
       });
     }
   }

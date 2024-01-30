@@ -45,6 +45,20 @@ class GenreControler {
     const id = Number(req.query.id);
     const userId = req.userId;
 
+    const currentPage = req.query.page || 1;
+    var itemsPerPage = req.query.per_page || 10; // Số bản ghi trên mỗi trang
+    if (itemsPerPage > 100) itemsPerPage = 100;
+
+    const offset = (currentPage - 1) * itemsPerPage; // Tính OFFSET
+
+    const page = Number(req.query.page);
+    const perPage = Number(req.query.per_page);
+    const erros = [];
+
+    if (!page) erros.push({ page: 'page not validation' });
+    if (!perPage) erros.push({ perPage: 'per_page not validation' });
+    if (erros.length > 0) throw new ValidationError(erros);
+
     if (!id) throw new ValidationError({ id: 'Not validation' });
 
     var data = await GenreModel.findOne({
@@ -59,6 +73,9 @@ class GenreControler {
               exclude: ['password'],
             },
           },
+          limit: Number(itemsPerPage),
+          offset: offset,
+          order: [['createAt', 'DESC']],
         },
       }),
       data = SqlizeToJSON(data);

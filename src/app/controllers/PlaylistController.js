@@ -314,6 +314,52 @@ class PlayListController {
     }
   }
 
+  async getPlaylistByUserId(req, response) {
+    const userId = req.userId;
+
+    var playlists = await PlayListModel.findAll({
+      where: {
+        userId: userId,
+      },
+    });
+    playlists = multiSqlizeToJSON(playlists);
+    var playlistIds = playlists.map((playlist) => {
+      return playlist.id;
+    });
+
+    // Lấy ra các bài hát của playlist
+    var songs = await SongPlaylistModel.findAll({
+      where: {
+        playlistId: playlistIds,
+      },
+      attributes: {
+        exclude: ['songId'],
+      },
+      include: [
+        {
+          model: SongModel,
+          as: 'song',
+        },
+      ],
+    });
+
+    songs = multiSqlizeToJSON(songs);
+
+    playlists.map((playlist) => {
+      playlist.songs = [];
+      songs.map((song) => {
+        if (playlist.id === song.playlistId) {
+          playlist.songs.push(song.song);
+        }
+      });
+    });
+
+    return response.status(200).json({
+      result: true,
+      data: playlists,
+    });
+  }
+
   async deletePlaylistById(req, response) {
     const idPlaylist = req.query.idPlaylist;
     const playlist = await PlayListModel.destroy({
@@ -345,9 +391,14 @@ class PlayListController {
           },
         ],
       });
+      var playlists = multiSqlizeToJSON(playlistFollow);
+      playlists = playlists.map((playlist) => {
+        playlist.followingPlaylist.isFollow = true;
+        return playlist.followingPlaylist;
+      });
       return response.status(200).json({
         result: true,
-        data: playlistFollow,
+        data: playlists,
       });
     } else {
       throw new ValidationError({ message: 'User not found' });
