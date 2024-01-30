@@ -12,9 +12,6 @@ const {
 const { multiSqlizeToJSON } = require('../until/sequelize');
 
 class Follower {
-<<<<<<< HEAD
-  // Lấy ra những người mình đang follow
-=======
   async getCountFollowByIdUser(req, response) {
     const idUser = req.query.idUser;
     if (idUser) {
@@ -35,7 +32,8 @@ class Follower {
       });
     }
   }
->>>>>>> 56d97f1cadd648549fbea46769243a87f392c907
+
+  // Lấy ra những người mình đang follow
   async getMyFollowing(req, response, next) {
     const userId = req.userId;
     var userFollowers = await FollowUserModel.findAll({
