@@ -57,16 +57,31 @@ class SongController {
     // console.log(thumbNail);
     //Tính toán số giây của file nhạc
 
-    const imageUploaded = await cloudinary.uploader.upload(thumbNail.path, {
-      folder: 'images', // Tên thư mục bạn muốn sử dụng
+    const uploadOptions = {
+      transformation: {
+        width: 400, // Chiều rộng mới
+        height: 400, // Chiều cao mới
+        crop: 'fill', // Phương pháp cắt ảnh
+        format: 'jpg', // Định dạng mới
+      },
+      folder: 'images', // Thư mục trên Cloudinary để lưu ảnh
       resource_type: 'auto',
-    });
+    };
 
     mp3Duration(song.path, async function (err, duration) {
       if (err) {
         console.error(err.message);
-        return;
+        return response.status(400).json({
+          isSuccess: false,
+          message: 'Create Song fail',
+        });
       }
+
+      if (duration < 60) {
+        return response.status(400).json({ isSuccess: false, message: 'Audio file is too short' });
+      }
+
+      const imageUploaded = await cloudinary.uploader.upload(thumbNail.path, uploadOptions);
 
       const songUploaded = await cloudinary.uploader.upload(song.path, {
         folder: 'audios', // Tên thư mục bạn muốn sử dụng

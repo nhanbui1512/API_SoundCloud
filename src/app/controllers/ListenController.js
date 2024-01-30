@@ -10,7 +10,7 @@ class ListenController {
     const song = await SongModel.findByPk(songId);
     if (song === null) throw new NotFoundError({ song: 'Not found this song' });
 
-    song.numberListen++;
+    song.numberOfListen++;
     await song.save();
 
     return response.status(200).json({ song });
