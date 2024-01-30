@@ -15,10 +15,12 @@ const ValidationError = require('../errors/ValidationError');
 const NotfoundError = require('../errors/NotFoundError');
 const { multiSqlizeToJSON, SqlizeToJSON } = require('../until/sequelize');
 const { shuffleArray } = require('../until/arrays');
-const { Op } = require('sequelize');
+const { Op, Sequelize } = require('sequelize');
 const { DeleteFile } = require('../until/manageFile');
+const NotFoundError = require('../errors/NotFoundError');
 
 class SongController {
+  // Tạo nhạc
   async createSong(req, response) {
     const name = req.body.name;
     const description = req.body.description;
@@ -211,6 +213,8 @@ class SongController {
       },
     });
 
+    if (song === null) throw new NotFoundError({ song: 'Not found this song' });
+
     song = SqlizeToJSON(song);
     song.owner = song.user;
     delete song.user;
@@ -392,6 +396,54 @@ class SongController {
     });
 
     return response.status(200).json({ songs, playlists });
+  }
+
+  // Recomend những bài hát chưa được Like (req,response)
+  async RecommendSongs(req, response) {
+    const userId = req.userId;
+
+    var songs = await SongModel.findAll({
+        order: [['numberOfListen', 'DESC']],
+        include: [
+          {
+            model: UserModel,
+            attributes: {
+              exclude: ['password'],
+            },
+          },
+          {
+            model: GenreModel,
+          },
+        ],
+        limit: 20,
+      }),
+      songs = multiSqlizeToJSON(songs);
+
+    if (!userId) {
+      songs = songs.map((song) => {
+        song.isLiked = false;
+        return song;
+      });
+
+      response.status(200).json({ data: songs });
+    }
+
+    const songIds = songs.map((song) => song.id);
+
+    var userLikedSong = await UserLikeSongModel.findAll({
+        where: {
+          songId: songIds,
+          userId: userId,
+        },
+      }),
+      userLikedSong = multiSqlizeToJSON(userLikedSong);
+
+    songs = songs.map((song) => {
+      song.isLiked = userLikedSong.find((liked) => liked.songId === song.id) ? true : false;
+      return song;
+    });
+
+    return response.status(200).json(songs);
   }
 }
 

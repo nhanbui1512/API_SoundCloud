@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.get('/', encodedToken, PlaylistController.getPlaylistById);
 router.get('/getall', encodedToken, PlaylistController.getAllPlaylist);
+
 router.get('/follow-playlists', isLoginMiddleware, PlaylistController.MyPlaylists); //playlist following
 router.get('/playlist-followed', isLoginMiddleware, PlaylistController.getUserFollowPlaylist); //playlist followed users
 

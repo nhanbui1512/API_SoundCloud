@@ -12,6 +12,7 @@ const {
 const { multiSqlizeToJSON } = require('../until/sequelize');
 
 class Follower {
+  // Lấy ra những người mình đang follow
   async getMyFollowing(req, response, next) {
     const userId = req.userId;
     var userFollowers = await FollowUserModel.findAll({
@@ -75,6 +76,7 @@ class Follower {
     });
   }
 
+  // Lấy ra những người đang follow mình
   async getMyFollowers(req, response, next) {
     const userId = req.userId;
     const followers = await FollowUserModel.findAndCountAll({
@@ -96,6 +98,7 @@ class Follower {
     });
   }
 
+  // Action follow
   async followUser(req, response, next) {
     const userFolled = req.query.user_id;
     const userId = req.userId;
@@ -139,6 +142,7 @@ class Follower {
     return response.status(200).json({ data: dataResponse });
   }
 
+  // Action Unfollow
   async unFollowUser(req, response, next) {
     const userFolled = req.query.user_id;
     const userId = req.userId;
@@ -158,6 +162,7 @@ class Follower {
     response.status(200).json({ status: 200, deleted: result, message });
   }
 
+  // Lấy ra playlist của mình
   async MyPlaylists(req, response) {
     const userId = req.userId;
 

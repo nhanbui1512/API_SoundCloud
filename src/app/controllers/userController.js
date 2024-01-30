@@ -57,7 +57,7 @@ class UserController {
   async updateUser(req, response, next) {
     const file = req.file;
 
-    if (file.mimetype.includes('image') === false)
+    if (file && file.mimetype.includes('image') === false)
       throw ValidationError({ file: 'File not validation' });
 
     const userId = req.userId;
