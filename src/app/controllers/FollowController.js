@@ -12,6 +12,26 @@ const {
 const { multiSqlizeToJSON } = require('../until/sequelize');
 
 class Follower {
+  async getCountFollowByIdUser(req, response) {
+    const idUser = req.query.idUser;
+    if (idUser) {
+      var userFollows = await FollowUserModel.findAll({
+        where: {
+          followed: idUser,
+        },
+      });
+      userFollows = multiSqlizeToJSON(userFollows);
+      return response.status(200).json({
+        result: true,
+        data: userFollows,
+      });
+    } else {
+      return response.status(422).json({
+        result: false,
+        message: 'IdUser must be attached',
+      });
+    }
+  }
   async getMyFollowing(req, response, next) {
     const userId = req.userId;
     var userFollowers = await FollowUserModel.findAll({

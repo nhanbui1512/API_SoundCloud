@@ -315,17 +315,69 @@ class PlayListController {
   }
 
   async getPlaylistByUserId(req, response) {
-    const userId = req.userId;
+    var idUserPlaylist = Number(req.query.idUser);
+    var userId = req.userId;
+    var idUserLogin = null;
+    if (idUserPlaylist) {
+      idUserLogin = userId;
+      userId = idUserPlaylist;
+    }
 
+    // getUser
+    const user = await UserModel.findOne({
+      where: {
+        id: userId,
+      },
+      attributes: {
+        exclude: ['createAtFormatTime', 'updateAtFormatTime', 'updateAt'],
+      },
+    });
+    // getPlaylists
     var playlists = await PlayListModel.findAll({
       where: {
         userId: userId,
       },
+      attributes: {
+        exclude: ['userId'],
+      },
     });
     playlists = multiSqlizeToJSON(playlists);
     var playlistIds = playlists.map((playlist) => {
+      playlist.owner = user;
       return playlist.id;
     });
+
+    // getFollowPlaylist
+    var followPlaylists = await FollowPlaylistModel.findAll({
+      where: {
+        playlistId: playlistIds,
+      },
+    });
+    followPlaylists = multiSqlizeToJSON(followPlaylists);
+    // Kiem tra idUserPlaylist de xu ly follow
+    if (idUserPlaylist) {
+      playlists.map((playlist) => {
+        // add follow
+        playlist.isFollow = false;
+        playlist.countFollow = 0;
+        followPlaylists.map((followPlaylist) => {
+          if (idUserLogin === followPlaylist.userId) {
+            playlist.isFollow = true;
+            playlist.countFollow = playlist.countFollow + 1;
+          }
+        });
+      });
+    } else {
+      playlists.map((playlist) => {
+        // add follow
+        playlist.countFollow = 0;
+        followPlaylists.map((followPlaylist) => {
+          if (playlist.id === followPlaylist.playlistId) {
+            playlist.countFollow = playlist.countFollow + 1;
+          }
+        });
+      });
+    }
 
     // Lấy ra các bài hát của playlist
     var songs = await SongPlaylistModel.findAll({
@@ -346,6 +398,7 @@ class PlayListController {
     songs = multiSqlizeToJSON(songs);
 
     playlists.map((playlist) => {
+      // add songs
       playlist.songs = [];
       songs.map((song) => {
         if (playlist.id === song.playlistId) {
