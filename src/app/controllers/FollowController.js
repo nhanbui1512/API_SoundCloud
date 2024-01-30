@@ -12,7 +12,30 @@ const {
 const { multiSqlizeToJSON } = require('../until/sequelize');
 
 class Follower {
+<<<<<<< HEAD
   // Lấy ra những người mình đang follow
+=======
+  async getCountFollowByIdUser(req, response) {
+    const idUser = req.query.idUser;
+    if (idUser) {
+      var userFollows = await FollowUserModel.findAll({
+        where: {
+          followed: idUser,
+        },
+      });
+      userFollows = multiSqlizeToJSON(userFollows);
+      return response.status(200).json({
+        result: true,
+        data: userFollows,
+      });
+    } else {
+      return response.status(422).json({
+        result: false,
+        message: 'IdUser must be attached',
+      });
+    }
+  }
+>>>>>>> 56d97f1cadd648549fbea46769243a87f392c907
   async getMyFollowing(req, response, next) {
     const userId = req.userId;
     var userFollowers = await FollowUserModel.findAll({
@@ -31,9 +54,18 @@ class Follower {
         },
       }),
       userFollowers = multiSqlizeToJSON(userFollowers);
+    console.log(userFollowers);
 
     const followingIds = userFollowers.map((follower) => follower.id);
+    const userIds = userFollowers.map((user) => user.followed);
     // console.log(followingIds); // Id những người mình follow
+    var userFollows = await FollowUserModel.findAll({
+      where: {
+        followed: userIds,
+      },
+    });
+    userFollows = multiSqlizeToJSON(userFollows);
+    console.log(userFollows);
 
     var songs = await SongModel.findAll({
         // những bài hát của những người mình follow
@@ -64,6 +96,13 @@ class Follower {
     });
 
     userFollowers = userFollowers.map((follower) => {
+      follower.following.countFollow = 0;
+      userFollows.map((user) => {
+        if (user.followed === follower.followed) {
+          follower.following.countFollow += 1;
+        }
+      });
+
       follower.songs = songs.filter((song) => song.ownerId === follower.id);
       follower.following.isFollow = true;
       return follower;

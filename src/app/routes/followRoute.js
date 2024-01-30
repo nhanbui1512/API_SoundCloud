@@ -4,6 +4,8 @@ const isLoginMiddleware = require('../middlewares/isLoginMiddleware');
 
 const router = express.Router();
 
+// đến số người đang theo dõi bằng IdUser
+router.get('/', isLoginMiddleware, FollowController.getCountFollowByIdUser);
 // những người mình đang theo dõi
 router.get('/following', isLoginMiddleware, FollowController.getMyFollowing);
 // những người theo dõi mình
