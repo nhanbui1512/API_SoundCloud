@@ -38,6 +38,9 @@ router.post(
 router.get('/get-songs', enCodedToken, SongController.getSongs);
 router.get('/getsong', enCodedToken, SongController.getSongById);
 router.get('/search', SongController.SearchSong);
+router.get('/recommend', enCodedToken, SongController.RecommendSongs);
+router.get('/liked', isLoginMiddleWare, SongController.getSongsLiked);
+
 router.post('/like', isLoginMiddleWare, SongController.LikeSong);
 
 router.delete('/unlike', isLoginMiddleWare, SongController.UnlikeSong);
