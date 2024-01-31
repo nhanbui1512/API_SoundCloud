@@ -47,7 +47,7 @@ class UserController {
       }
     } else {
       return response.status(422).json({
-        isSuccess: true,
+        isSuccess: false,
         message: 'Password not validation',
       });
     }
@@ -140,7 +140,7 @@ class UserController {
           });
         } else {
           return response.status(422).json({
-            result: true,
+            result: false,
             message: 'Password unsuccessful',
           });
         }

@@ -308,7 +308,7 @@ class PlayListController {
       });
     } else {
       return response.status(422).json({
-        result: true,
+        result: false,
         message: 'Playlist not found',
       });
     }
