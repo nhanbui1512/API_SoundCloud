@@ -442,9 +442,26 @@ class SongController {
       }),
       songs = multiSqlizeToJSON(songs);
 
+    const ownerIds = songs.map((song) => song.user.id);
+
+    var followed = []; // những người sở hữu bài hát mà được user follow
+    if (userId) {
+      followed = await FollowUserModel.findAll({
+        where: {
+          followed: ownerIds,
+          user_id: userId,
+        },
+      });
+      followed = multiSqlizeToJSON(followed);
+    }
+
     if (!userId) {
       songs = songs.map((song) => {
         song.isLiked = false;
+        song.owner = song.user;
+        song.owner.isFollowed = false;
+        delete song.user;
+
         return song;
       });
 
@@ -463,6 +480,12 @@ class SongController {
 
     songs = songs.map((song) => {
       song.isLiked = userLikedSong.find((liked) => liked.songId === song.id) ? true : false;
+      song.owner = song.user;
+      delete song.user;
+
+      song.owner.isFollowed = followed.find((follow) => follow.followed === song.owner.id)
+        ? true
+        : false;
       return song;
     });
 
