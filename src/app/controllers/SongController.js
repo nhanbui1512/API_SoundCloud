@@ -132,32 +132,47 @@ class SongController {
     if (erros.length > 0) throw new ValidationError(erros);
 
     try {
-      const songs = await SongModel.findAll({
-        include: [
-          {
-            model: UserModel,
-            attributes: {
-              exclude: ['password'],
+      var songs = await SongModel.findAll({
+          include: [
+            {
+              model: UserModel,
+              attributes: {
+                exclude: ['password'],
+              },
             },
-          },
-          {
-            model: GenreModel,
-            attributes: {
-              exclude: ['createAt', 'updateAt'],
+            {
+              model: GenreModel,
+              attributes: {
+                exclude: ['createAt', 'updateAt'],
+              },
             },
+          ],
+          attributes: {
+            exclude: ['genreId', 'ownerId'],
           },
-        ],
-        attributes: {
-          exclude: ['genreId', 'ownerId'],
-        },
-        limit: Number(itemsPerPage),
-        offset: offset,
-        order: [['createAt', 'DESC']],
-      });
+          limit: Number(itemsPerPage),
+          offset: offset,
+          order: [['createAt', 'DESC']],
+        }),
+        songs = multiSqlizeToJSON(songs);
 
       const ids = songs.map((song) => {
         return song.id;
       });
+
+      var ownerIds = songs.map((song) => song.user.id);
+      ownerIds = ownerIds.filter((item, index) => ownerIds.indexOf(item) === index);
+
+      var followed = []; // những người sở hữu bài hát mà được user follow
+      if (userId !== null) {
+        followed = await FollowUserModel.findAll({
+          where: {
+            followed: ownerIds,
+            user_id: userId,
+          },
+        });
+        followed = multiSqlizeToJSON(followed);
+      }
 
       var likes = await UserLikeSongModel.findAll({
         where: {
@@ -170,8 +185,12 @@ class SongController {
       });
 
       let result = songs.map((song) => {
-        song = song.toJSON();
-
+        if (userId === null) song.user.isFollowed = false;
+        else {
+          song.user.isFollowed = followed.find((follow) => follow.followed === song.user.id)
+            ? true
+            : false;
+        }
         song.owner = song.user;
         delete song.user;
 
@@ -180,8 +199,9 @@ class SongController {
           else return likeCount;
         }, 0);
 
-        song.likeCount = count;
+        song.likeCount = count; // số like
 
+        // đã like hay chưa
         song.isLiked = likes.find((like) => like.userId === userId && song.id === like.songId)
           ? true
           : false;
