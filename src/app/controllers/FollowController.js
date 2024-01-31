@@ -50,7 +50,6 @@ class Follower {
         },
       }),
       userFollowers = multiSqlizeToJSON(userFollowers);
-    console.log(userFollowers);
 
     const followingIds = userFollowers.map((follower) => follower.id);
     const userIds = userFollowers.map((user) => user.followed);
@@ -61,7 +60,6 @@ class Follower {
       },
     });
     userFollows = multiSqlizeToJSON(userFollows);
-    console.log(userFollows);
 
     var songs = await SongModel.findAll({
         // những bài hát của những người mình follow
