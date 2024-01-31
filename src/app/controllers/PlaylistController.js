@@ -448,7 +448,6 @@ class PlayListController {
       var playlists = multiSqlizeToJSON(playlistFollow);
 
       var playlistIds = playlists.map((playlist) => {
-        console.log(playlist.followingPlaylist.id);
         return playlist.followingPlaylist.id;
       });
 

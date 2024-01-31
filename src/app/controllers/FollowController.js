@@ -71,10 +71,7 @@ class Follower {
       }),
       songs = multiSqlizeToJSON(songs);
 
-    console.log(songs);
-
     const songIds = songs.map((song) => song.id); // id những bài hát của những người mình follow
-    // console.log(songIds);
     var userLikeSongs = await UserLikeSongModel.findAll({
         where: {
           songId: songIds,
