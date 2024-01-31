@@ -495,7 +495,7 @@ class SongController {
   async getSongsLiked(req, response) {
     const userId = req.userId;
 
-    var songs = await UserLikeSongModel.findAll({
+    var likes = await UserLikeSongModel.findAll({
         where: {
           userId: userId,
         },
@@ -511,17 +511,43 @@ class SongController {
         },
         order: [['createAt', 'DESC']],
       }),
-      songs = multiSqlizeToJSON(songs);
+      likes = multiSqlizeToJSON(likes);
 
-    songs = songs.map((song) => {
+    var ownerIds = likes.map((like) => like.songOfUserLike.ownerId);
+    ownerIds = ownerIds.filter((item, index) => ownerIds.indexOf(item) === index);
+
+    var userfollows = await FollowUserModel.findAll({
+        where: {
+          followed: ownerIds,
+        },
+      }),
+      userfollows = multiSqlizeToJSON(userfollows);
+
+    const songIds = likes.map((like) => like.songId);
+    var userLikedSongs = await UserLikeSongModel.findAll({
+        where: {
+          songId: songIds,
+        },
+      }),
+      userLikedSongs = multiSqlizeToJSON(userLikedSongs);
+
+    likes = likes.map((song) => {
       song.songOfUserLike.owner = song.songOfUserLike.user;
       delete song.songOfUserLike.user;
+
       song.song = song.songOfUserLike;
       delete song.songOfUserLike;
+
+      song.song.likeCount = userLikedSongs.filter((like) => like.songId === song.songId).length;
+      song.song.isLiked = true;
+
+      song.song.owner.followerCount = userfollows.filter(
+        (follow) => follow.followed === song.song.ownerId,
+      ).length;
       return song;
     });
 
-    return response.status(200).json({ data: songs });
+    return response.status(200).json({ data: likes });
   }
 }
 
