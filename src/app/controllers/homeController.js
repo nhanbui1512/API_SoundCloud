@@ -1,6 +1,7 @@
 const { UserModel, SongModel, sequelize } = require('../models');
 const { encrypt, decrypt } = require('../until/encode');
 const { multiSqlizeToJSON } = require('../until/sequelize');
+const bcrypt = require('bcrypt');
 
 class HomeController {
   async index(req, res) {
@@ -10,11 +11,36 @@ class HomeController {
       },
     });
 
+    // var users = await UserModel.findAll({
+    //   attributes: {
+    //     include: ['password', 'id'],
+    //   },
+    // });
+
+    // users = users.map(async (user) => {
+    //   user.password = await bcrypt.hash(user.password, 10);
+    //   await UserModel.update(
+    //     {
+    //       password: user.password,
+    //     },
+    //     {
+    //       where: {
+    //         id: user.id,
+    //       },
+    //     },
+    //   );
+    // });
+
     // sequelize
     //   .transaction(async (t) => {
     //     await Promise.all(
     //       users.map(async (userData) => {
-    //         await UserModel.update(userData, { where: { id: userData.id }, transaction: t });
+    //         await UserModel.update(
+    //           {
+    //             password: userData.password,
+    //           },
+    //           { where: { id: userData.id }, transaction: t },
+    //         );
     //       }),
     //     );
     //   })

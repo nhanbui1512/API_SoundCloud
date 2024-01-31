@@ -5,6 +5,7 @@ const { isValidEmail } = require('../until/email');
 const { checkPass } = require('../until/checkPass');
 const { SqlizeToJSON, multiSqlizeToJSON } = require('../until/sequelize');
 const { Op } = require('sequelize');
+const bcrypt = require('bcrypt');
 
 const cloudinary = require('cloudinary').v2;
 
@@ -39,7 +40,17 @@ class UserController {
       if (user) {
         throw new ValidationError({ email: 'Email is exist' });
       } else {
-        const newUser = await UserModel.create(data);
+        const cryptPassword = await bcrypt.hash(data.password, 10);
+
+        var newUser = await UserModel.create({
+          userName: data.userName,
+          email: data.email,
+          password: cryptPassword,
+        });
+
+        newUser = newUser.toJSON();
+        newUser.password = data.password;
+
         return response.status(200).json({
           isSuccess: true,
           newUser,
@@ -47,7 +58,7 @@ class UserController {
       }
     } else {
       return response.status(422).json({
-        isSuccess: true,
+        isSuccess: false,
         message: 'Password not validation',
       });
     }
@@ -124,24 +135,35 @@ class UserController {
       const user = await UserModel.findOne({
         where: {
           id: userId,
-          password: ownPass,
         },
       });
-      if (user) {
+
+      if (user !== null) {
+        // kiểm tra mật khẩu cũ có đúng không
+        let isEqual = await bcrypt.compare(ownPass, user.password);
+
+        if (!isEqual) throw new NotFoundError({ user: 'Not found' });
+
         const checkpass = await checkPass(newPass);
 
+        //kiểm tra chuẩn mật khẩu
         if (checkpass) {
-          user.password = newPass;
-          const newUser = await user.save();
+          const cryptPassword = await bcrypt.hash(newPass, 10);
+          user.password = cryptPassword;
+
+          var newUser = await user.save();
+          newUser = newUser.toJSON();
+          newUser.password = newPass;
           return response.status(200).json({
             result: true,
-            data: { ...newUser.dataValues, password: null },
+            data: { newUser },
             message: 'User was update pass successfully',
           });
         } else {
+          // không chuẩn
           return response.status(422).json({
             result: true,
-            message: 'Password unsuccessful',
+            message: 'Password not validation',
           });
         }
       } else {
