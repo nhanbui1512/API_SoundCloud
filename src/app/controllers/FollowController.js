@@ -53,9 +53,9 @@ class Follower {
       }),
       userFollowers = multiSqlizeToJSON(userFollowers);
 
-    const followingIds = userFollowers.map((follower) => follower.id);
+    const followingIds = userFollowers.map((follower) => follower.followed);
     const userIds = userFollowers.map((user) => user.followed);
-    // console.log(followingIds); // Id những người mình follow
+
     var userFollows = await FollowUserModel.findAll({
       where: {
         followed: userIds,
@@ -71,6 +71,8 @@ class Follower {
       }),
       songs = multiSqlizeToJSON(songs);
 
+    console.log(songs);
+
     const songIds = songs.map((song) => song.id); // id những bài hát của những người mình follow
     // console.log(songIds);
     var userLikeSongs = await UserLikeSongModel.findAll({
@@ -80,7 +82,7 @@ class Follower {
       }),
       userLikeSongs = multiSqlizeToJSON(userLikeSongs);
 
-    songs.map((song) => {
+    songs = songs.map((song) => {
       song.isLiked = userLikeSongs.find(
         (liked) => liked.songId === song.id && liked.userId === userId,
       )
@@ -99,7 +101,7 @@ class Follower {
         }
       });
 
-      follower.songs = songs.filter((song) => song.ownerId === follower.id);
+      follower.songs = songs.filter((song) => song.ownerId === follower.followed);
       follower.following.isFollow = true;
       return follower;
     });
