@@ -72,7 +72,6 @@ class Follower {
       songs = multiSqlizeToJSON(songs);
 
     const songIds = songs.map((song) => song.id); // id những bài hát của những người mình follow
-    // console.log(songIds);
     var userLikeSongs = await UserLikeSongModel.findAll({
         where: {
           songId: songIds,
@@ -145,37 +144,47 @@ class Follower {
     const user = await UserModel.findByPk(userFolled);
 
     if (user === null) throw new NotFoundError({ user: 'Not found User' });
+    if (userId === userFolled) throw new NotFoundError({ user: 'My user' });
 
-    const result = await FollowUserModel.findOrCreate({
+    const checkFollow = await FollowUserModel.findOne({
       where: {
         user_id: userId,
         followed: userFolled,
       },
     });
-
-    const dataResponse = await FollowUserModel.findByPk(result[0].toJSON().id, {
-      include: [
-        {
-          as: 'follower',
-          model: UserModel,
-          attributes: {
-            exclude: ['password'],
-          },
+    if (checkFollow) {
+      return response.status(400).json({ result: false, message: 'You followed user' });
+    } else {
+      const result = await FollowUserModel.findOrCreate({
+        where: {
+          user_id: userId,
+          followed: userFolled,
         },
-        {
-          model: UserModel,
-          as: 'following',
-          attributes: {
-            exclude: ['password'],
-          },
-        },
-      ],
-      attributes: {
-        exclude: ['user_id', 'followed'],
-      },
-    });
+      });
 
-    return response.status(200).json({ data: dataResponse });
+      const dataResponse = await FollowUserModel.findByPk(result[0].toJSON().id, {
+        include: [
+          {
+            as: 'follower',
+            model: UserModel,
+            attributes: {
+              exclude: ['password'],
+            },
+          },
+          {
+            model: UserModel,
+            as: 'following',
+            attributes: {
+              exclude: ['password'],
+            },
+          },
+        ],
+        attributes: {
+          exclude: ['user_id', 'followed'],
+        },
+      });
+      return response.status(200).json({ data: dataResponse });
+    }
   }
 
   // Action Unfollow
@@ -230,27 +239,38 @@ class Follower {
         playlist: 'Not found playlist',
       });
 
-    if (userId != playlist.toJSON().userId) {
-      const following = await FollowPlaylistModel.findOrCreate({
-        where: {
-          userId: userId,
-          playlistId: playlistId,
-        },
-      });
+    const checkFollow = await FollowPlaylistModel.findOne({
+      where: {
+        userId: userId,
+        playlistId: playlistId,
+      },
+    });
 
-      const result = following[0].toJSON();
-
-      result.user = user;
-      result.playlist = playlist;
-
-      return response.send({
-        data: result,
-      });
+    if (checkFollow) {
+      return response.status(400).json({ result: false, message: 'You followed playlist' });
     } else {
-      return response.status(400).json({
-        result: false,
-        message: 'The playlist are user-owned',
-      });
+      if (userId != playlist.toJSON().userId) {
+        const following = await FollowPlaylistModel.findOrCreate({
+          where: {
+            userId: userId,
+            playlistId: playlistId,
+          },
+        });
+
+        const result = following[0].toJSON();
+
+        result.user = user;
+        result.playlist = playlist;
+
+        return response.send({
+          data: result,
+        });
+      } else {
+        return response.status(400).json({
+          result: false,
+          message: 'The playlist are user-owned',
+        });
+      }
     }
   }
 

@@ -162,8 +162,8 @@ class UserController {
         } else {
           // không chuẩn
           return response.status(422).json({
-            result: true,
-            message: 'Password not validation',
+            result: false,
+            message: 'Password unsuccessful',
           });
         }
       } else {
