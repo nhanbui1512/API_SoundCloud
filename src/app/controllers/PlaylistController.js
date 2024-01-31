@@ -426,6 +426,7 @@ class PlayListController {
     });
   }
 
+  // get follow-playlists
   async MyPlaylists(req, response) {
     const userId = req.userId;
 
@@ -445,10 +446,42 @@ class PlayListController {
         ],
       });
       var playlists = multiSqlizeToJSON(playlistFollow);
+
+      var playlistIds = playlists.map((playlist) => {
+        console.log(playlist.followingPlaylist.id);
+        return playlist.followingPlaylist.id;
+      });
+
+      // Lấy ra các bài hát của playlist
+      var songs = await SongPlaylistModel.findAll({
+        where: {
+          playlistId: playlistIds,
+        },
+        attributes: {
+          exclude: ['songId'],
+        },
+        include: [
+          {
+            model: SongModel,
+            as: 'song',
+          },
+        ],
+      });
+
+      songs = multiSqlizeToJSON(songs);
+
       playlists = playlists.map((playlist) => {
+        // add songs
+        playlist.followingPlaylist.songs = [];
         playlist.followingPlaylist.isFollow = true;
+        songs.map((song) => {
+          if (playlist.followingPlaylist.id === song.playlistId) {
+            playlist.followingPlaylist.songs.push(song.song);
+          }
+        });
         return playlist.followingPlaylist;
       });
+
       return response.status(200).json({
         result: true,
         data: playlists,
