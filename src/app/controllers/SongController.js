@@ -245,12 +245,21 @@ class SongController {
       },
     });
 
-    // nếu người dùng có gửi token lên (đã login)
-    if (userId) {
-      const isLiked = multiSqlizeToJSON(likesOfThisSong).find((item) => item.userId === userId);
-      if (isLiked) song.isLiked = true;
-    }
+    song.owner.isFollowed = false;
 
+    // nếu người dùng có gửi token lên (đã login)
+    if (userId !== null) {
+      const isLiked = multiSqlizeToJSON(likesOfThisSong).find((item) => item.userId === userId);
+      song.isLiked = isLiked ? true : false;
+
+      const isFollowed = await FollowUserModel.findOne({
+        where: {
+          followed: song.ownerId,
+          user_id: userId,
+        },
+      });
+      song.owner.isFollowed = isFollowed !== null ? true : false;
+    }
     song.likeCount = likesOfThisSong.length;
 
     return response.status(200).json({ song: song });
