@@ -142,7 +142,7 @@ class UserController {
         // kiểm tra mật khẩu cũ có đúng không
         let isEqual = await bcrypt.compare(ownPass, user.password);
 
-        if (!isEqual) throw new NotFoundError({ user: 'Not found' });
+        if (!isEqual) throw new NotFoundError({ user: 'Old Password is wrong' });
 
         const checkpass = await checkPass(newPass);
 
@@ -167,10 +167,7 @@ class UserController {
           });
         }
       } else {
-        return response.status(400).json({
-          result: false,
-          message: 'User not found',
-        });
+        throw new NotFoundError({ user: 'Not found User' });
       }
     }
   }
