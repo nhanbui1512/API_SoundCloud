@@ -348,6 +348,8 @@ class UserController {
 
     return response.status(200).json({ data: users });
   }
+
+  async getUserTopSong(req, response) {}
 }
 
 module.exports = new UserController();
