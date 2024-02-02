@@ -225,19 +225,26 @@ class SongController {
     const userId = req.userId || null;
 
     var song = await SongModel.findByPk(songId, {
-      include: {
-        model: UserModel,
-        attributes: {
-          exclude: ['password'],
+      include: [
+        {
+          model: UserModel,
+          attributes: {
+            exclude: ['password'],
+          },
         },
-      },
+        {
+          model: GenreModel,
+        },
+      ],
     });
 
     if (song === null) throw new NotFoundError({ song: 'Not found this song' });
 
     song = SqlizeToJSON(song);
     song.owner = song.user;
+    song.nameGenre = song.genre.name;
     delete song.user;
+    delete song.genre;
 
     const likesOfThisSong = await UserLikeSongModel.findAll({
       where: {
@@ -245,7 +252,29 @@ class SongController {
       },
     });
 
+    // lay ra so nguoi theo doi
+    var usersFollow = await FollowUserModel.findAll({
+      where: {
+        followed: song.ownerId,
+      },
+    });
+    usersFollow = multiSqlizeToJSON(usersFollow);
+
+    // kiem tra coi theo doi chu bai hat chua
     song.owner.isFollowed = false;
+
+    usersFollow.map((userFollow) => {
+      if (song.ownerId === userFollow.followed && userId === userFollow.user_id) {
+        song.owner.isFollowed = true;
+      }
+    });
+
+    // nếu người dùng có gửi token lên (đã login)
+    if (userId) {
+      song.isLiked = false;
+      const isLiked = multiSqlizeToJSON(likesOfThisSong).find((item) => item.userId === userId);
+      if (isLiked) song.isLiked = true;
+    }
 
     // nếu người dùng có gửi token lên (đã login)
     if (userId !== null) {
@@ -261,6 +290,7 @@ class SongController {
       song.owner.isFollowed = isFollowed !== null ? true : false;
     }
     song.likeCount = likesOfThisSong.length;
+    song.followCount = usersFollow.length;
 
     return response.status(200).json({ song: song });
   }

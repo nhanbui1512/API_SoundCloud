@@ -25,6 +25,7 @@ router.put('/update', upload.single('avatar'), isLoginMiddleware, UserController
 router.put('/change-password', isLoginMiddleware, UserController.changePassWord);
 router.get('/get-profile', isLoginMiddleware, UserController.getMyProfile);
 router.get('/search', encodedToken, UserController.searchUser);
+router.get('/user-top-song', encodedToken, UserController.getUserTopSong);
 
 router.get('/get-users', encodedToken, userController.getListUser);
 router.get('/', encodedToken, UserController.findUser);
