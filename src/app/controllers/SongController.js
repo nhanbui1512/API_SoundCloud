@@ -261,10 +261,11 @@ class SongController {
     usersFollow = multiSqlizeToJSON(usersFollow);
 
     // kiem tra coi theo doi chu bai hat chua
-    song.isFollow = false;
+    song.owner.isFollowed = false;
+
     usersFollow.map((userFollow) => {
       if (song.ownerId === userFollow.followed && userId === userFollow.user_id) {
-        song.isFollow = true;
+        song.owner.isFollowed = true;
       }
     });
 
@@ -275,6 +276,19 @@ class SongController {
       if (isLiked) song.isLiked = true;
     }
 
+    // nếu người dùng có gửi token lên (đã login)
+    if (userId !== null) {
+      const isLiked = multiSqlizeToJSON(likesOfThisSong).find((item) => item.userId === userId);
+      song.isLiked = isLiked ? true : false;
+
+      const isFollowed = await FollowUserModel.findOne({
+        where: {
+          followed: song.ownerId,
+          user_id: userId,
+        },
+      });
+      song.owner.isFollowed = isFollowed !== null ? true : false;
+    }
     song.likeCount = likesOfThisSong.length;
     song.followCount = usersFollow.length;
 
@@ -520,7 +534,7 @@ class SongController {
   async getSongsLiked(req, response) {
     const userId = req.userId;
 
-    var songs = await UserLikeSongModel.findAll({
+    var likes = await UserLikeSongModel.findAll({
         where: {
           userId: userId,
         },
@@ -536,17 +550,43 @@ class SongController {
         },
         order: [['createAt', 'DESC']],
       }),
-      songs = multiSqlizeToJSON(songs);
+      likes = multiSqlizeToJSON(likes);
 
-    songs = songs.map((song) => {
+    var ownerIds = likes.map((like) => like.songOfUserLike.ownerId);
+    ownerIds = ownerIds.filter((item, index) => ownerIds.indexOf(item) === index);
+
+    var userfollows = await FollowUserModel.findAll({
+        where: {
+          followed: ownerIds,
+        },
+      }),
+      userfollows = multiSqlizeToJSON(userfollows);
+
+    const songIds = likes.map((like) => like.songId);
+    var userLikedSongs = await UserLikeSongModel.findAll({
+        where: {
+          songId: songIds,
+        },
+      }),
+      userLikedSongs = multiSqlizeToJSON(userLikedSongs);
+
+    likes = likes.map((song) => {
       song.songOfUserLike.owner = song.songOfUserLike.user;
       delete song.songOfUserLike.user;
+
       song.song = song.songOfUserLike;
       delete song.songOfUserLike;
+
+      song.song.likeCount = userLikedSongs.filter((like) => like.songId === song.songId).length;
+      song.song.isLiked = true;
+
+      song.song.owner.followerCount = userfollows.filter(
+        (follow) => follow.followed === song.song.ownerId,
+      ).length;
       return song;
     });
 
-    return response.status(200).json({ data: songs });
+    return response.status(200).json({ data: likes });
   }
 }
 
