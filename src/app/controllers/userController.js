@@ -1,4 +1,4 @@
-const { UserModel, SongModel, FollowUserModel, sequelize } = require('../models');
+const { UserModel, SongModel, FollowUserModel, sequelize, GenreModel } = require('../models');
 const ValidationError = require('../errors/ValidationError');
 const NotFoundError = require('../errors/NotFoundError');
 const { isValidEmail } = require('../until/email');
@@ -349,7 +349,72 @@ class UserController {
     return response.status(200).json({ data: users });
   }
 
-  async getUserTopSong(req, response) {}
+  async getTopSong(req, response) {
+    const userId = req.userId;
+
+    // song
+    var songs = await SongModel.findAll({
+      order: [['numberOfListen', 'DESC']],
+      limit: 20,
+    });
+    songs = multiSqlizeToJSON(songs);
+
+    var id_users = songs.map((song) => {
+      return song.ownerId;
+    });
+
+    id_users = id_users.filter((item, index) => id_users.indexOf(item) === index);
+
+    // user
+    var Users = await UserModel.findAll({
+      where: {
+        id: id_users,
+      },
+      attributes: {
+        exclude: ['password'],
+      },
+    });
+    Users = multiSqlizeToJSON(Users);
+
+    // follow
+    var UserFollows = await FollowUserModel.findAll({
+      where: {
+        followed: id_users,
+      },
+      attributes: {
+        exclude: ['password'],
+      },
+    });
+    UserFollows = multiSqlizeToJSON(UserFollows);
+    var Users = Users.map((User) => {
+      User.countFollow = 0;
+      User.isFollow = false;
+      UserFollows.map((UserFollow) => {
+        if (User.id === UserFollow.followed) {
+          User.countFollow += 1;
+          if (userId === UserFollow.user_id) {
+            User.isFollow = true;
+          }
+        }
+      });
+      return User;
+    });
+
+    // add to song
+    songs = songs.map((song) => {
+      Users.map((User) => {
+        if (song.ownerId === User.id) {
+          song.Owner = User;
+        }
+      });
+      return song;
+    });
+
+    return response.status(200).json({
+      result: true,
+      data: songs,
+    });
+  }
 }
 
 module.exports = new UserController();
