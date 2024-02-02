@@ -309,7 +309,7 @@ class UserController {
   }
 
   // GET /user
-  async getListUse(req, response) {
+  async getListUser(req, response) {
     const userId = req.userId;
     var quantity = Number(req.query.quantity);
     if (!quantity) throw new ValidationError({ quantity: 'Not validation' });

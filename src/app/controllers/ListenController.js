@@ -3,7 +3,7 @@ const ValidationError = require('../errors/ValidationError');
 const NotFoundError = require('../errors/NotFoundError');
 
 class ListenController {
-  async incraseListenCount(req, response) {
+  async increaseListenCount(req, response) {
     const songId = req.query.song_id;
     if (!songId) throw new ValidationError({ song_id: 'Must be attached' });
 

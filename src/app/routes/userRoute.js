@@ -26,7 +26,7 @@ router.put('/change-password', isLoginMiddleware, UserController.changePassWord)
 router.get('/get-profile', isLoginMiddleware, UserController.getMyProfile);
 router.get('/search', encodedToken, UserController.searchUser);
 
-router.get('/get-users', encodedToken, userController.getListUse);
+router.get('/get-users', encodedToken, userController.getListUser);
 router.get('/', encodedToken, UserController.findUser);
 
 module.exports = router;
