@@ -342,7 +342,11 @@ class UserController {
     users = users.map((user) => {
       user.trackNumber = user.songs.length;
       user.followerNumber = followers.filter((follower) => follower.followed === user.id).length;
-      user.isFollowed = followers.find((follower) => follower.user_id === user.id) ? true : false;
+      user.isFollowed = followers.find(
+        (follower) => follower.user_id === userId && follower.followed === user.id,
+      )
+        ? true
+        : false;
       return user;
     });
 
