@@ -234,6 +234,25 @@ class UserController {
     // parse sequelize object -> JSON
     user = SqlizeToJSON(user);
 
+    const userData = {
+      avatar: user.avatar,
+      createAtFormatTime: user.createAtFormatTime,
+      updateAtFormatTime: user.updateAtFormatTime,
+      id: user.id,
+      userName: user.userName,
+      email: user.email,
+      city: user.city,
+      country: user.country,
+      bio: user.bio,
+      createAt: user.createAt,
+      updateAt: user.updateAt,
+    };
+
+    user.songs = user.songs.map((song) => {
+      song.owner = userData;
+      return song;
+    });
+
     if (user !== null) {
       // lấy ra những người đã follow  user
       var follower = await FollowUserModel.findAndCountAll({
