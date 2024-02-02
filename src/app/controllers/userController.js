@@ -255,6 +255,8 @@ class UserController {
       follower = multiSqlizeToJSON(follower.rows);
       const isFollowed = follower.find((follower) => follower.user_id === userId);
       user.isFollowed = isFollowed ? true : false;
+    } else {
+      throw new NotFoundError({ user: 'Not found User' });
     }
 
     return response.status(200).json({ data: user });

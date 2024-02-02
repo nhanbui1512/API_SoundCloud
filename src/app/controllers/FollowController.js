@@ -154,7 +154,7 @@ class Follower {
       },
     });
     if (checkFollow) {
-      return response.status(400).json({ result: false, message: 'You followed user' });
+      return response.status(200).json({ result: true, message: 'You followed user' });
     } else {
       const result = await FollowUserModel.findOrCreate({
         where: {

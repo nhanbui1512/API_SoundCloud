@@ -508,11 +508,24 @@ class PlayListController {
         {
           model: SongModel,
           as: 'song',
+          include: {
+            model: UserModel,
+            attributes: {
+              exclude: ['password'],
+            },
+          },
         },
       ],
     });
 
     songs = multiSqlizeToJSON(songs);
+
+    songs = songs.map((song) => {
+      song.song.owner = song.song.user;
+      song.song.owner.isFollowed = false; // chưa kiểm tra nếu có token gửi lên
+      delete song.song.user;
+      return song;
+    });
 
     playlists.map((playlist) => {
       // add songs
