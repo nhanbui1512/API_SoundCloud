@@ -352,68 +352,47 @@ class UserController {
   async getTopSong(req, response) {
     const userId = req.userId;
 
-    // song
-    var songs = await SongModel.findAll({
-      order: [['numberOfListen', 'DESC']],
-      limit: 20,
-    });
-    songs = multiSqlizeToJSON(songs);
-
-    var id_users = songs.map((song) => {
-      return song.ownerId;
-    });
-
-    id_users = id_users.filter((item, index) => id_users.indexOf(item) === index);
-
-    // user
-    var Users = await UserModel.findAll({
-      where: {
-        id: id_users,
-      },
+    var topUsersWithSongs = await UserModel.findAll({
+      include: [{ model: SongModel, order: [['createAt', 'DESC']] }],
       attributes: {
+        include: [
+          [
+            sequelize.literal('(SELECT COUNT(*) FROM songs WHERE songs.ownerId = users.id)'),
+            'songsCount',
+          ],
+        ],
         exclude: ['password'],
       },
+      order: [['songsCount', 'DESC']],
     });
-    Users = multiSqlizeToJSON(Users);
 
-    // follow
-    var UserFollows = await FollowUserModel.findAll({
-      where: {
-        followed: id_users,
-      },
-      attributes: {
-        exclude: ['password'],
-      },
+    topUsersWithSongs = multiSqlizeToJSON(topUsersWithSongs);
+
+    topUsersWithSongs = topUsersWithSongs.map((user) => {
+      user.isFollowed = false;
+      return user;
     });
-    UserFollows = multiSqlizeToJSON(UserFollows);
-    var Users = Users.map((User) => {
-      User.countFollow = 0;
-      User.isFollow = false;
-      UserFollows.map((UserFollow) => {
-        if (User.id === UserFollow.followed) {
-          User.countFollow += 1;
-          if (userId === UserFollow.user_id) {
-            User.isFollow = true;
-          }
-        }
+
+    topUsersWithSongs = topUsersWithSongs.splice(0, 10);
+
+    if (userId) {
+      const ownerIds = topUsersWithSongs.map((user) => user.id);
+
+      var followers = await FollowUserModel.findAll({
+          where: {
+            followed: ownerIds,
+          },
+        }),
+        followers = multiSqlizeToJSON(followers);
+
+      topUsersWithSongs = topUsersWithSongs.map((user) => {
+        user.isFollowed = followers.find((follower) => follower.user_id === userId) ? true : false;
+        user.followerCount = followers.filter((follow) => follow.followed === user.id).length;
+        return user;
       });
-      return User;
-    });
+    }
 
-    // add to song
-    songs = songs.map((song) => {
-      Users.map((User) => {
-        if (song.ownerId === User.id) {
-          song.Owner = User;
-        }
-      });
-      return song;
-    });
-
-    return response.status(200).json({
-      result: true,
-      data: songs,
-    });
+    return response.status(200).json({ data: topUsersWithSongs });
   }
 }
 
