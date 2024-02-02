@@ -104,6 +104,123 @@ class PlayListController {
     }
   }
 
+  async updatePlaylist(req, response) {
+    const userId = req.userId;
+    const idPlaylist = req.query.idPlaylist;
+    const idSongs = req.body.idSongs;
+    const name = req.body.name;
+    if (!idPlaylist) throw new ValidationError({ message: 'IdPlaylist must be attached' });
+    if (!name) throw new ValidationError({ message: 'name must be attached' });
+
+    const playList = await PlayListModel.findOne({
+      where: {
+        userId: userId,
+        id: idPlaylist,
+      },
+    });
+
+    if (playList === null) throw new NotFoundError({ playlist: 'Not found' });
+
+    if (playList) {
+      playList.name = name;
+      await playList.save();
+    }
+    // update playlist
+    if (idSongs.length && idSongs.length > 0) {
+      var songs = await SongModel.findAll({
+          where: {
+            id: idSongs,
+          },
+        }),
+        songs = multiSqlizeToJSON(songs);
+      var songIds = songs.map((song) => song.id);
+
+      // kiểm tra xem song đã tồn tại trong play list
+      var songsInPlaylist = await SongPlaylistModel.findAll({
+          where: {
+            playlistId: idPlaylist,
+          },
+        }),
+        songsInPlaylist = multiSqlizeToJSON(songsInPlaylist);
+
+      // xóa trong songIds nếu tồn tại trong check
+      var songIdsInPlaylist = songsInPlaylist.map((songInPlaylist) => songInPlaylist.songId);
+      if (songIdsInPlaylist.length < 1) {
+        var songPlaylistIds = [];
+        songIds.map((songId) => {
+          songPlaylistIds.push({
+            songId: songId,
+            playlistId: Number(idPlaylist),
+          });
+        });
+        await SongPlaylistModel.bulkCreate(songPlaylistIds);
+      } else {
+        var idSongs_update = [];
+        var idSongs_delete = [];
+        songIds.forEach((songId) => {
+          if (!songIdsInPlaylist.includes(songId)) {
+            idSongs_update.push(songId);
+          }
+        });
+
+        songIdsInPlaylist.forEach((songId) => {
+          if (!songIds.includes(songId)) {
+            idSongs_delete.push(songId);
+          }
+        });
+
+        var songPlaylistIds = [];
+        idSongs_update.map((songId) => {
+          songPlaylistIds.push({
+            songId: songId,
+            playlistId: Number(idPlaylist),
+          });
+        });
+        await SongPlaylistModel.bulkCreate(songPlaylistIds);
+
+        await SongPlaylistModel.destroy({
+          where: {
+            songId: idSongs_delete,
+            playlistId: idPlaylist,
+          },
+        });
+      }
+
+      const PlayLists = await SongPlaylistModel.findAll({
+        where: {
+          playlistId: idPlaylist,
+        },
+        include: [
+          {
+            model: SongModel,
+            as: 'song',
+          },
+          {
+            model: PlayListModel,
+            as: 'playlist',
+          },
+        ],
+      });
+
+      if (PlayLists) {
+        return response.status(200).json({
+          result: true,
+          data: PlayLists,
+        });
+      } else {
+        return response.status(422).json({
+          result: false,
+          message: 'Playlist not found',
+        });
+      }
+    } else {
+      return response.status(200).json({
+        result: true,
+        data: playList,
+      });
+    }
+  }
+
   async removeSongsToPlaylist(req, response) {
     const userId = req.userId;
     const idPlaylist = req.query.idPlaylist;
