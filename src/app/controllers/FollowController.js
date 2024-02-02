@@ -247,7 +247,7 @@ class Follower {
     });
 
     if (checkFollow) {
-      return response.status(400).json({ result: false, message: 'You followed playlist' });
+      return response.status(200).json({ data: playlist });
     } else {
       if (userId != playlist.toJSON().userId) {
         const following = await FollowPlaylistModel.findOrCreate({
