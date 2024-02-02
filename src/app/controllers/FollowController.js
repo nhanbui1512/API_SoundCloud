@@ -50,6 +50,7 @@ class Follower {
         attributes: {
           exclude: ['user_id'],
         },
+        order: [['createAt', 'DESC']],
       }),
       userFollowers = multiSqlizeToJSON(userFollowers);
 
