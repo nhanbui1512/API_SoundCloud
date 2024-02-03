@@ -179,6 +179,16 @@ class UserController {
       include: [
         {
           model: SongModel,
+          attributes: {
+            include: [
+              [
+                sequelize.literal(
+                  '(SELECT COUNT(*) FROM userlikesongs WHERE userlikesongs.songId = songs.id)',
+                ),
+                'likeCount',
+              ],
+            ],
+          },
         },
       ],
       attributes: {
