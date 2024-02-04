@@ -721,6 +721,30 @@ class PlayListController {
     if (!quantity) throw new ValidationError({ quantity: 'Not validation' });
 
     var playlists = await PlayListModel.findAll({
+        attributes: {
+          include: [
+            [
+              sequelize.literal(
+                `(SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END AS result FROM follow_playlists  WHERE follow_playlists.userId = ${userId} AND follow_playlists.playlistId = playlists.id)`,
+              ),
+              'isFollowed',
+            ],
+          ],
+        },
+        include: {
+          model: UserModel,
+          attributes: {
+            include: [
+              [
+                sequelize.literal(
+                  `(SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END AS result FROM follow_users  WHERE follow_users.user_id = ${userId} AND follow_users.followed = user.id)`,
+                ),
+                'isFollowed',
+              ],
+            ],
+            exclude: 'password',
+          },
+        },
         limit: quantity,
         order: sequelize.random(),
       }),
@@ -785,6 +809,10 @@ class PlayListController {
     });
 
     playlists.map((playlist) => {
+      playlist.isFollowed = Boolean(playlist.isFollowed);
+      playlist.owner = playlist.user;
+      playlist.owner.isFollowed = Boolean(playlist.owner.isFollowed);
+      delete playlist.user;
       var songs = songsOfPlaylist.filter((songPlaylist) => songPlaylist.playlistId === playlist.id);
       playlist.songs = songs.map((song) => song.song);
       playlist.countSong = songs.length;

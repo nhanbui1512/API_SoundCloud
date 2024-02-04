@@ -292,7 +292,9 @@ class UserController {
       // Nếu người dùng có gửi token lên thì kiểm tra xem đã follow user tìm kiếm hay chưa
 
       follower = multiSqlizeToJSON(follower.rows);
-      const isFollowed = follower.find((follower) => follower.user_id === userId);
+      const isFollowed = follower.find(
+        (follower) => follower.user_id === userId && follower.followed === user.id,
+      );
       user.isFollowed = isFollowed ? true : false;
     } else {
       throw new NotFoundError({ user: 'Not found User' });
