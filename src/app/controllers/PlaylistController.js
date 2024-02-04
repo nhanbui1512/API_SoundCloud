@@ -114,7 +114,7 @@ class PlayListController {
     if (!idPlaylist) throw new ValidationError({ message: 'IdPlaylist must be attached' });
     if (!name) throw new ValidationError({ message: 'name must be attached' });
 
-    const playList = await PlayListModel.findOne({
+    var playList = await PlayListModel.findOne({
       where: {
         userId: userId,
         id: idPlaylist,
@@ -137,17 +137,12 @@ class PlayListController {
         songs = multiSqlizeToJSON(songs);
       var songIds = songs.map((song) => song.id);
 
-      // kiểm tra xem song đã tồn tại trong play list
-      var songsInPlaylist = await SongPlaylistModel.findAll({
-          where: {
-            playlistId: idPlaylist,
-          },
-        }),
-        songsInPlaylist = multiSqlizeToJSON(songsInPlaylist);
-
-      // xóa trong songIds nếu tồn tại trong check
-      var songIdsInPlaylist = songsInPlaylist.map((songInPlaylist) => songInPlaylist.songId);
-      if (songIdsInPlaylist.length < 1) {
+      await SongPlaylistModel.destroy({
+        where: {
+          playlistId: idPlaylist,
+        },
+      });
+      if (songIds > 0) {
         var songPlaylistIds = [];
         songIds.map((songId) => {
           songPlaylistIds.push({
@@ -156,66 +151,25 @@ class PlayListController {
           });
         });
         await SongPlaylistModel.bulkCreate(songPlaylistIds);
-      } else {
-        var idSongs_update = [];
-        var idSongs_delete = [];
-        songIds.forEach((songId) => {
-          if (!songIdsInPlaylist.includes(songId)) {
-            idSongs_update.push(songId);
-          }
-        });
 
-        songIdsInPlaylist.forEach((songId) => {
-          if (!songIds.includes(songId)) {
-            idSongs_delete.push(songId);
-          }
-        });
-
-        var songPlaylistIds = [];
-        idSongs_update.map((songId) => {
-          songPlaylistIds.push({
-            songId: songId,
-            playlistId: Number(idPlaylist),
-          });
-        });
-        await SongPlaylistModel.bulkCreate(songPlaylistIds);
-
-        await SongPlaylistModel.destroy({
-          where: {
-            songId: idSongs_delete,
-            playlistId: idPlaylist,
-          },
-        });
-      }
-
-      const PlayLists = await SongPlaylistModel.findAll({
-        where: {
-          playlistId: idPlaylist,
-        },
-        include: [
-          {
-            model: SongModel,
-            as: 'song',
-          },
-          {
-            model: PlayListModel,
-            as: 'playlist',
-          },
-        ],
-      });
-
-      if (PlayLists) {
+        playList = playList.toJSON();
+        playList.songs = songs;
         return response.status(200).json({
           result: true,
-          data: PlayLists,
+          data: playList,
         });
       } else {
-        return response.status(422).json({
-          result: false,
-          message: 'Playlist not found',
+        playList = playList.toJSON();
+        playList.songs = [];
+
+        return response.status(200).json({
+          result: true,
+          data: playList,
         });
       }
     } else {
+      playList = playList.toJSON();
+      playList.songs = [];
       return response.status(200).json({
         result: true,
         data: playList,

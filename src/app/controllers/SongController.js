@@ -252,6 +252,14 @@ class SongController {
       },
     });
 
+    // lay ra playlists cua user
+    var playlists = await PlayListModel.findAll({
+      where: {
+        userId: song.ownerId,
+      },
+    });
+    playlists = multiSqlizeToJSON(playlists);
+
     // lay ra so nguoi theo doi
     var usersFollow = await FollowUserModel.findAll({
       where: {
@@ -288,9 +296,10 @@ class SongController {
         },
       });
       song.owner.isFollowed = isFollowed !== null ? true : false;
+      song.owner.followCount = usersFollow.length;
     }
     song.likeCount = likesOfThisSong.length;
-    song.followCount = usersFollow.length;
+    song.playlistCount = playlists.length;
 
     return response.status(200).json({ song: song });
   }
