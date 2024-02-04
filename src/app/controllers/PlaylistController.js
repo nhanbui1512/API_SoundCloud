@@ -7,6 +7,7 @@ const {
   UserModel,
   SongPlaylistModel,
   SongModel,
+  sequelize,
 } = require('../models');
 
 const { createSongPlaylist } = require('../until/songPlaylist');
@@ -432,114 +433,102 @@ class PlayListController {
   }
 
   async getPlaylistByUserId(req, response) {
-    var idUserPlaylist = Number(req.query.idUser);
-    var userId = req.userId;
-    var idUserLogin = null;
-    if (idUserPlaylist) {
-      idUserLogin = userId;
-      userId = idUserPlaylist;
-    }
+    const queryId = Number(req.query.idUser);
+    if (!queryId) throw new ValidationError({ idUser: 'Not validation' });
+    const userId = req.userId || -1;
 
-    // getUser
-    const user = await UserModel.findOne({
-      where: {
-        id: userId,
-      },
+    const user = await UserModel.findByPk(queryId, {
       attributes: {
-        exclude: ['createAtFormatTime', 'updateAtFormatTime', 'updateAt'],
+        exclude: 'password',
       },
     });
-    // getPlaylists
-    var playlists = await PlayListModel.findAll({
-      where: {
-        userId: userId,
-      },
-      attributes: {
-        exclude: ['userId'],
-      },
-    });
-    playlists = multiSqlizeToJSON(playlists);
-    var playlistIds = playlists.map((playlist) => {
-      playlist.owner = user;
-      return playlist.id;
-    });
+    if (user === null) throw new NotFoundError({ user: 'Not found' });
 
-    // getFollowPlaylist
-    var followPlaylists = await FollowPlaylistModel.findAll({
-      where: {
-        playlistId: playlistIds,
-      },
-    });
-    followPlaylists = multiSqlizeToJSON(followPlaylists);
-    // Kiem tra idUserPlaylist de xu ly follow
-    if (idUserPlaylist) {
-      playlists.map((playlist) => {
-        // add follow
-        playlist.isFollow = false;
-        playlist.countFollow = 0;
-        followPlaylists.map((followPlaylist) => {
-          if (idUserLogin === followPlaylist.userId) {
-            playlist.isFollow = true;
-            playlist.countFollow = playlist.countFollow + 1;
-          }
-        });
-      });
-    } else {
-      playlists.map((playlist) => {
-        // add follow
-        playlist.countFollow = 0;
-        followPlaylists.map((followPlaylist) => {
-          if (playlist.id === followPlaylist.playlistId) {
-            playlist.countFollow = playlist.countFollow + 1;
-          }
-        });
-      });
-    }
+    var playLists = await PlayListModel.findAll({
+        where: {
+          userId: queryId,
+        },
+        attributes: {
+          include: [
+            [
+              sequelize.literal(
+                `(SELECT CASE WHEN COUNT(*) > 0 THEN 'true' ELSE 'false' END AS result FROM follow_playlists  WHERE follow_playlists.userId = ${userId} AND follow_playlists.playlistId = playlists.id)`,
+              ),
+              'isFollowed',
+            ],
+            [
+              sequelize.literal(
+                `(SELECT  COUNT(*) FROM follow_playlists WHERE follow_playlists.playlistId = playlists.id)`,
+              ),
+              'countFollow',
+            ],
+          ],
+        },
+      }),
+      playLists = multiSqlizeToJSON(playLists);
 
-    // Lấy ra các bài hát của playlist
+    const playlistIds = playLists.map((playlist) => playlist.id);
+
     var songs = await SongPlaylistModel.findAll({
-      where: {
-        playlistId: playlistIds,
-      },
-      attributes: {
-        exclude: ['songId'],
-      },
-      include: [
-        {
+        where: {
+          playlistId: playlistIds,
+        },
+        include: {
           model: SongModel,
-          as: 'song',
           include: {
             model: UserModel,
             attributes: {
               exclude: ['password'],
             },
           },
+          as: 'song',
+          attributes: {
+            include: [
+              [
+                sequelize.literal(
+                  '(SELECT COUNT(*) FROM userlikesongs WHERE userlikesongs.songId = song.id)',
+                ),
+                'likeCount',
+              ],
+              [
+                sequelize.literal(
+                  `(SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END AS result FROM userlikesongs  WHERE userlikesongs.userId = ${userId} AND userlikesongs.songId = song.id)`,
+                ),
+                'isLiked',
+              ],
+            ],
+          },
         },
-      ],
+      }),
+      songs = multiSqlizeToJSON(songs);
+
+    playLists.map((playlist) => {
+      playlist.songs = songs.filter((song) => song.playlistId === playlist.id);
+      return playlist;
     });
 
-    songs = multiSqlizeToJSON(songs);
+    playLists.map((playlist) => {
+      playlist.songs = playlist.songs.map((song) => {
+        delete song.id;
+        delete song.createAt;
+        delete song.updateAt;
+        delete song.playlistId;
+        delete song.songId;
+        song.song.owner = song.song.user;
+        delete song.song.user;
+        song.song.isLiked = Boolean(song.song.isLiked);
+        song = song.song;
 
-    songs = songs.map((song) => {
-      song.song.owner = song.song.user;
-      song.song.owner.isFollowed = false; // chưa kiểm tra nếu có token gửi lên
-      delete song.song.user;
-      return song;
-    });
-
-    playlists.map((playlist) => {
-      // add songs
-      playlist.songs = [];
-      songs.map((song) => {
-        if (playlist.id === song.playlistId) {
-          playlist.songs.push(song.song);
-        }
+        return song;
       });
+      return playlist;
     });
 
     return response.status(200).json({
-      result: true,
-      data: playlists,
+      data: {
+        user: user,
+        playlists: playLists,
+      },
     });
   }
 
