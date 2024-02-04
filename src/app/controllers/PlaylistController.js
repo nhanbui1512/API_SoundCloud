@@ -393,21 +393,54 @@ class PlayListController {
 
   async getPlaylistById(req, response) {
     const idPlaylist = req.query.idPlaylist;
+    const userId = req.userId || -1;
 
     var playlist = await PlayListModel.findOne({
+      include: {
+        model: UserModel,
+        attributes: {
+          exclude: 'password',
+        },
+      },
       where: {
         id: idPlaylist,
       },
     });
+
+    if (playlist === null) throw new NotFoundError({ playlist: 'Not found' });
     // Lấy ra các bài hát của playlist
     var songs = await SongPlaylistModel.findAll({
       where: {
         playlistId: playlist.toJSON().id,
       },
+
       include: [
         {
           model: SongModel,
           as: 'song',
+          attributes: {
+            include: [
+              [
+                sequelize.literal(
+                  `(SELECT  COUNT(*) FROM userlikesongs WHERE userlikesongs.songId = song.id)`,
+                ),
+                'likeCount',
+              ],
+              [
+                sequelize.literal(
+                  `(SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END AS result FROM userlikesongs  WHERE userlikesongs.userId = ${userId} AND userlikesongs.songId = song.id)`,
+                ),
+                'isLiked',
+              ],
+            ],
+            exclude: ['ownerId'],
+          },
+          include: {
+            model: UserModel,
+            attributes: {
+              exclude: 'password',
+            },
+          },
         },
       ],
     });
@@ -416,20 +449,15 @@ class PlayListController {
     playlist = playlist.toJSON();
     playlist.songs = [];
     songs.map((song) => {
+      song.song.owner = song.song.user;
+      song.song.isLiked = Boolean(song.song.isLiked);
+      delete song.song.user;
       playlist.songs.push(song.song);
     });
 
-    if (playlist) {
-      return response.status(200).json({
-        result: true,
-        data: playlist,
-      });
-    } else {
-      return response.status(422).json({
-        result: false,
-        message: 'Playlist not found',
-      });
-    }
+    return response.status(200).json({
+      data: playlist,
+    });
   }
 
   async getPlaylistByUserId(req, response) {
