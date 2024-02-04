@@ -3,4 +3,8 @@ function shuffleArray(array) {
   return array.sort(() => Math.random() - 0.5);
 }
 
-module.exports = { shuffleArray };
+function removeDuplicates(arr) {
+  return [...new Set(arr)];
+}
+
+module.exports = { shuffleArray, removeDuplicates };
