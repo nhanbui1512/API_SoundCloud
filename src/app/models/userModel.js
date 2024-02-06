@@ -37,7 +37,8 @@ const User = (sequelize) => {
     },
     avatar: {
       type: DataTypes.STRING,
-      defaultValue: 'defaultAvatar.png',
+      defaultValue:
+        'https://res.cloudinary.com/dmykkmqwz/image/upload/v1707232848/avatars/mqs4zqposuv6cjvkdgwf.png',
       get() {
         const fileName = this.getDataValue('avatar');
         if (fileName === null) return fileName;
