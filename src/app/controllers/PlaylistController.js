@@ -108,73 +108,44 @@ class PlayListController {
 
   async updatePlaylist(req, response) {
     const userId = req.userId;
-    const idPlaylist = req.query.idPlaylist;
-    const idSongs = req.body.idSongs;
+    const playlistId = Number(req.query.idPlaylist);
+    const songIds = [...req.body.idSongs];
+
     const name = req.body.name;
-    if (!idPlaylist) throw new ValidationError({ message: 'IdPlaylist must be attached' });
+    if (!playlistId) throw new ValidationError({ idPlaylist: 'Not validation' });
     if (!name) throw new ValidationError({ message: 'name must be attached' });
 
-    var playList = await PlayListModel.findOne({
+    const playlist = await PlayListModel.findOne({
       where: {
         userId: userId,
-        id: idPlaylist,
+        id: playlistId,
       },
     });
+    if (playlist === null) throw new NotFoundError({ playlist: 'Not found playlist' });
 
-    if (playList === null) throw new NotFoundError({ playlist: 'Not found' });
+    playlist.name = name;
 
-    if (playList) {
-      playList.name = name;
-      await playList.save();
-    }
-    // update playlist
-    if (idSongs.length && idSongs.length > 0) {
-      var songs = await SongModel.findAll({
-          where: {
-            id: idSongs,
-          },
-        }),
-        songs = multiSqlizeToJSON(songs);
-      var songIds = songs.map((song) => song.id);
+    await playlist.save();
 
-      await SongPlaylistModel.destroy({
+    var build = songIds.map((id) => {
+      return { songId: id, playlistId: playlistId };
+    });
+
+    var songPlaylist = await SongPlaylistModel.findAll({
         where: {
-          playlistId: idPlaylist,
+          songId: songIds,
+          playlistId: playlistId,
         },
-      });
-      if (songIds > 0) {
-        var songPlaylistIds = [];
-        songIds.map((songId) => {
-          songPlaylistIds.push({
-            songId: songId,
-            playlistId: Number(idPlaylist),
-          });
-        });
-        await SongPlaylistModel.bulkCreate(songPlaylistIds);
+      }),
+      songPlaylist = multiSqlizeToJSON(songPlaylist);
 
-        playList = playList.toJSON();
-        playList.songs = songs;
-        return response.status(200).json({
-          result: true,
-          data: playList,
-        });
-      } else {
-        playList = playList.toJSON();
-        playList.songs = [];
+    build = build.filter((song) => {
+      return songPlaylist.find((item) => item.songId === song.songId) ? false : true;
+    });
 
-        return response.status(200).json({
-          result: true,
-          data: playList,
-        });
-      }
-    } else {
-      playList = playList.toJSON();
-      playList.songs = [];
-      return response.status(200).json({
-        result: true,
-        data: playList,
-      });
-    }
+    await SongPlaylistModel.bulkCreate(build);
+
+    return response.status(200).json({ isSuccess: true, message: 'Update playlist successfully' });
   }
 
   async removeSongsToPlaylist(req, response) {
@@ -194,7 +165,7 @@ class PlayListController {
 
     await createSongPlaylist(idSongs, idPlaylist, 'delete'); // add relationship song playlist
 
-    const PlayLists = await SongPlaylistModel.findAll({
+    var PlayLists = await SongPlaylistModel.findAll({
       where: {
         playlistId: idPlaylist,
       },
@@ -203,21 +174,17 @@ class PlayListController {
           model: SongModel,
           as: 'song',
         },
-        {
-          model: PlayListModel,
-          as: 'playlist',
-        },
       ],
     });
 
-    if (PlayLists) {
+    if (PlayLists !== null) {
       return response.status(200).json({
-        result: true,
+        isSuccess: true,
         data: PlayLists,
       });
     } else {
       return response.status(422).json({
-        result: false,
+        isSuccess: false,
         message: 'Playlist not found',
       });
     }
