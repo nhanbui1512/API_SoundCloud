@@ -6,6 +6,7 @@ const loginRouter = require('./loginRoute');
 const listenRouter = require('./listenRoute');
 const followRouter = require('./followRoute');
 const playlistRouter = require('./playlistRoute');
+const loopRouter = require('./loopRoute');
 
 function route(app) {
   app.use('/home', homeRouter);
@@ -16,6 +17,7 @@ function route(app) {
   app.use('/listen', listenRouter);
   app.use('/follow', followRouter);
   app.use('/playlist', playlistRouter);
+  app.use('/loop', loopRouter);
 }
 
 module.exports = route;

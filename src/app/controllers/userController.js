@@ -198,6 +198,10 @@ class UserController {
 
     if (user !== null) {
       user = SqlizeToJSON(user);
+
+      user.songs.sort((a, b) => {
+        return b.createAt - a.createAt;
+      });
     }
 
     var followers = await FollowUserModel.findAll({

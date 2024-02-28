@@ -1,6 +1,9 @@
 function errorHandle(err, req, response, next) {
   const devEnvironment = Boolean(process.env.DEV) || false;
 
+  const messageError = err.messageObject || err.message;
+  const statusError = err.status || 400;
+
   if (devEnvironment) {
     console.log('ERROR LOG: ', new Date().toLocaleDateString());
     console.log('ReqestL: ', req.method, req.originalUrl);
@@ -12,12 +15,9 @@ function errorHandle(err, req, response, next) {
     console.log(
       '--------------------------------------------------------------------------------------------------------------------------------------------',
     );
+    console.log(messageError);
   }
 
-  const messageError = err.messageObject || err.message;
-  const statusError = err.status || 400;
-
-  console.log(messageError);
   const error = {
     status: statusError,
     error: messageError,
