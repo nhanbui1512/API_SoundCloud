@@ -6,27 +6,19 @@ const router = express.Router();
 /**
  * @swagger
  * tags:
- *   name: Books
+ *   name: Home
  *   description: The books managing API
- * /books:
- *   post:
+ * /api/home:
+ *   get:
  *     summary: Create a new book
- *     tags: [Books]
+ *     tags: [Home]
  *     requestBody:
- *       required: true
+ *       required: false
  *       content:
  *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Book'
  *     responses:
- *       200:
- *         description: The created book.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Book'
- *       500:
- *         description: Some server error
+ *       '200':
+ *          description: Successful
  *
  */
 router.get('/', homeController.index);

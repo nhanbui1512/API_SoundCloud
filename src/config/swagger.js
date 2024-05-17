@@ -1,5 +1,7 @@
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const path = require('path');
+
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -10,11 +12,12 @@ const options = {
     },
   },
   // looks for configuration in specified directories
-  apis: ['./app/routes/*.js'],
+  apis: ['./src/app/routes/*.js'],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
 
+// console.log(path.join(__dirname, '/Public'));
 function swaggerDocs(app) {
   // Swagger Page
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
