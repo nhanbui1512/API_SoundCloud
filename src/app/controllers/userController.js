@@ -255,6 +255,8 @@ class UserController {
         exclude: ['password'],
       },
     });
+
+    if (user === null) throw new NotFoundError({ message: 'Not found User' });
     // parse sequelize object -> JSON
     user = SqlizeToJSON(user);
 
@@ -326,6 +328,9 @@ class UserController {
         ],
       },
       include: [{ model: SongModel }],
+      attributes: {
+        exclude: 'password',
+      },
     });
 
     const userIds = users.map((user) => user.id);

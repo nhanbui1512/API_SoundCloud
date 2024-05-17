@@ -8,6 +8,16 @@ const followRouter = require('./followRoute');
 const playlistRouter = require('./playlistRoute');
 const loopRouter = require('./loopRoute');
 
+/**
+ * @swagger
+ *components:
+ *  securitySchemes:
+ *    bearerAuth:
+ *      type: http
+ *      scheme: bearer
+ *      bearerFormat: JWT
+ *
+ */
 function route(app) {
   app.use('/api/home', homeRouter);
   app.use('/api/genre', genreRouter);

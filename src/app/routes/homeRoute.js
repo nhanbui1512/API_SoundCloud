@@ -7,10 +7,10 @@ const router = express.Router();
  * @swagger
  * tags:
  *   name: Home
- *   description: The books managing API
+ *   description: Home Route
  * /api/home:
  *   get:
- *     summary: Create a new book
+ *     summary: Health Check
  *     tags: [Home]
  *     requestBody:
  *       required: false

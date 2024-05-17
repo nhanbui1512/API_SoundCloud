@@ -7,9 +7,16 @@ class HomeController {
         model: UserModel,
       },
     });
-    return res.status(200).json({
-      data: song,
-    });
+    if (song !== null)
+      return res.status(200).json({
+        message: 'Server is ready',
+        status: 200,
+      });
+    else
+      return res.status(500).json({
+        status: 500,
+        message: 'Internal Error',
+      });
   }
 }
 module.exports = new HomeController();
