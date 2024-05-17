@@ -14,7 +14,7 @@ class LoopController {
 
     return response
       .status(200)
-      .json({ isSuccess: true, message: 'Increase number of loop successfully' });
+      .json({ isSuccess: true, message: 'Increase number of loop successfully', data: song });
   }
 }
 

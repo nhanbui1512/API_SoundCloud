@@ -1,4 +1,5 @@
 const dotenv = require('dotenv');
+const { local, cloud } = require('../../config/mysql');
 dotenv.config();
 const { Sequelize } = require('sequelize');
 const User = require('./userModel');
@@ -6,11 +7,11 @@ const Song = require('./songModel');
 const PlayList = require('./playListModel');
 const UserLikeSong = require('./UserLikeSong');
 
-const { local, cloud } = require('../../config/mysql');
 const Genre = require('./genreModel');
 const FollowUser = require('./followUser');
 const FollowPlaylist = require('./followPlaylist');
 const SongPlaylist = require('./SongPlaylistModel');
+const Token = require('./tokenModel');
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ const UserLikeSongModel = UserLikeSong(sequelize);
 const FollowUserModel = FollowUser(sequelize);
 const FollowPlaylistModel = FollowPlaylist(sequelize);
 const SongPlaylistModel = SongPlaylist(sequelize);
+const TokenModel = Token(sequelize);
 
 // relationship
 
