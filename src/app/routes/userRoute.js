@@ -24,7 +24,7 @@ var upload = multer({ storage: storage });
  * @swagger
  * tags:
  *   name: User
- *   description: The books managing API
+ *   description: User APIs
  */
 
 /**
