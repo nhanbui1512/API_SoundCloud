@@ -32,6 +32,48 @@ const router = express.Router();
  *   description: The songs managing API
  */
 
+/**
+ * @swagger
+
+ * /api/song/create:
+ *   post:
+ *     summary: Create song
+ *     tags: [Song]
+ *     security:
+ *      - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               song:
+ *                 type: file
+ *               thumbNail:
+ *                 type: file
+ *               description:
+ *                 type: string
+ *               genreId:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               artistName:
+ *                 type: string
+ *             required:
+ *               - song
+ *               - description
+ *               - genreId
+ *               - name
+ *               - artistName
+ *               - thumbNail
+ *     responses:
+ *       '200':
+ *          description: Successful
+ *       '404':
+ *          description: Not Found Data
+ */
+
 router.post(
   '/create',
   isLoginMiddleWare,
@@ -159,7 +201,7 @@ router.get('/recommend', enCodedToken, SongController.RecommendSongs);
 
  * /api/song/liked:
  *   get:
- *     summary: Get recommend songs
+ *     summary: Get liked songs
  *     tags: [Song]
  *     security:
  *      - bearerAuth: []
@@ -176,8 +218,93 @@ router.get('/recommend', enCodedToken, SongController.RecommendSongs);
 
 router.get('/liked', isLoginMiddleWare, SongController.getSongsLiked);
 
+/**
+ * @swagger
+
+ * /api/song/like:
+ *   post:
+ *     summary: Like song
+ *     tags: [Song]
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *      - in: query
+ *        name: song_id
+ *        schema:
+ *          type: string
+ *          default: ""
+ *        required: true
+ *        description: value
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *     responses:
+ *       '200':
+ *          description: Successful
+ *       '404':
+ *          description: Not Found Data
+ */
+
 router.post('/like', isLoginMiddleWare, SongController.LikeSong);
 
+/**
+ * @swagger
+
+ * /api/song/unlike:
+ *   delete:
+ *     summary: Unlike song
+ *     tags: [Song]
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *      - in: query
+ *        name: song_id
+ *        schema:
+ *          type: string
+ *          default: ""
+ *        required: true
+ *        description: value
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *     responses:
+ *       '200':
+ *          description: Successful
+ *       '404':
+ *          description: Not Found Data
+ */
+
 router.delete('/unlike', isLoginMiddleWare, SongController.UnlikeSong);
+
+/**
+ * @swagger
+
+ * /api/song/:
+ *   delete:
+ *     summary: Delete Song
+ *     tags: [Song]
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *      - in: query
+ *        name: song_id
+ *        schema:
+ *          type: string
+ *          default: ""
+ *        required: true
+ *        description: value
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *     responses:
+ *       '200':
+ *          description: Successful
+ *       '404':
+ *          description: Not Found Data
+ */
+
 router.delete('/', isLoginMiddleWare, SongController.deleteSong);
 module.exports = router;
