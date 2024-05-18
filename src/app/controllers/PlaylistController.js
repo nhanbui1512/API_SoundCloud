@@ -609,6 +609,7 @@ class PlayListController {
 
   async getUserFollowPlaylist(req, response) {
     const playlistId = req.query.idPlaylist;
+    if (!playlistId) throw NotFoundError({ playlistId: 'Must be filled' });
     const Users = await FollowPlaylistModel.findAll({
       where: {
         playlistId: playlistId,

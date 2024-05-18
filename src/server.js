@@ -48,4 +48,5 @@ app.use(errorHandle);
 
 app.listen(PORT, () => {
   console.log('app is listening on http://localhost:3000');
+  console.log('API documentation at : http://localhost:3000/docs');
 });
