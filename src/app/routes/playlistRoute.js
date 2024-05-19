@@ -337,7 +337,7 @@ router.delete('/remove-songs', isLoginMiddleware, PlaylistController.removeSongs
 
 /**
  * @swagger
- * 
+ *
  * /api/playlist:
  *   delete:
  *     summary: Delete a playlist
@@ -352,7 +352,6 @@ router.delete('/remove-songs', isLoginMiddleware, PlaylistController.removeSongs
  *          default: 1
  *        required: true
  *        description: number playlist
-
  *     responses:
  *       '200':
  *          description: Successful

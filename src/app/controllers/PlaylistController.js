@@ -203,7 +203,7 @@ class PlayListController {
     if (errors.length > 0) throw new ValidationError(errors);
 
     try {
-      const playlists = await PlayListModel.findAll({
+      var playlists = await PlayListModel.findAll({
         include: [
           {
             model: UserModel,
@@ -239,31 +239,30 @@ class PlayListController {
         ],
       });
 
-      if (userId) {
-        // Lấy ra các bài hát có trong playlist
-        var songs = await SongPlaylistModel.findAll({
-          where: {
-            playlistId: idPlaylists,
+      // Lấy ra các bài hát có trong playlist
+      var songs = await SongPlaylistModel.findAll({
+        where: {
+          playlistId: idPlaylists,
+        },
+        include: [
+          {
+            model: SongModel,
+            as: 'song',
           },
-          include: [
-            {
-              model: SongModel,
-              as: 'song',
-            },
-          ],
+        ],
+      });
+      songs = multiSqlizeToJSON(songs);
+
+      var playlistSongs = playlists.map((playlist) => {
+        playlist = playlist.toJSON();
+
+        playlist.songs = [];
+        songs.map((song) => {
+          playlist.songs.push(song.song);
         });
-        songs = multiSqlizeToJSON(songs);
-
-        var playlistSongs = playlists.map((playlist) => {
-          playlist = playlist.toJSON();
-
-          playlist.songs = [];
-          songs.map((song) => {
-            playlist.songs.push(song.song);
-          });
-          return playlist;
-        });
-
+        return playlist;
+      });
+      if (userId) {
         var result = playlistSongs.map((playlist) => {
           playlist.owner = playlist.user;
           delete playlist.user;

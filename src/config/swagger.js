@@ -6,8 +6,8 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'SoundCloud',
-      description: 'Sound Cloud APIs',
+      title: 'SoundCloud APP',
+      description: 'API Documentations',
       version: '1.0.0',
     },
   },
