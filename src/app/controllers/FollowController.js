@@ -208,7 +208,7 @@ class Follower {
     response.status(200).json({ status: 200, deleted: result, message });
   }
 
-  // Lấy ra playlist của mình
+  // Lấy ra playlist đang follow của mình
   async MyPlaylists(req, response) {
     const userId = req.userId;
 
