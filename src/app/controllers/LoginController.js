@@ -2,6 +2,7 @@ const token_require = require('../until/token');
 const { UserModel } = require('../models');
 const bcrypt = require('bcrypt');
 const ValidationError = require('../errors/ValidationError');
+const { StatusCodes } = require('http-status-codes');
 
 class LoginController {
   async checkLogin(req, response) {
@@ -22,16 +23,20 @@ class LoginController {
       });
 
       if (user === null) {
-        return response
-          .status(401)
-          .json({ status: 401, isSuccess: false, message: 'email or password is wrong' });
+        return response.status(StatusCodes.NOT_FOUND).json({
+          status: StatusCodes.NOT_FOUND,
+          isSuccess: false,
+          message: 'Email or password is wrong',
+        });
       } else {
         const checkPassword = await bcrypt.compare(password, user.password);
 
         if (!checkPassword)
-          return response
-            .status(401)
-            .json({ status: 401, isSuccess: false, message: 'Email or password is wrong' });
+          return response.status(StatusCodes.NOT_FOUND).json({
+            status: StatusCodes.NOT_FOUND,
+            isSuccess: false,
+            message: 'Email or password is wrong',
+          });
 
         user = user.toJSON();
         delete user.password;

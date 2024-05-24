@@ -5,6 +5,7 @@ const UserController = require('../controllers/userController');
 const isLoginMiddleware = require('../middlewares/isLoginMiddleware');
 const encodedToken = require('../middlewares/encodedToken');
 const userController = require('../controllers/userController');
+const { registerValidation } = require('../Validations/userValidation');
 
 const router = express.Router();
 
@@ -56,7 +57,7 @@ var upload = multer({ storage: storage });
  *          description: Successful
  */
 
-router.post('/register', UserController.registerUser);
+router.post('/register', registerValidation, UserController.registerUser);
 
 /**
  * @swagger
