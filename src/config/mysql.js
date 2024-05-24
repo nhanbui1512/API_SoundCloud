@@ -5,6 +5,7 @@ const host = process.env.HOST_MYSQL;
 const dbName = process.env.DB_NAME;
 const userName = process.env.USER_NAME;
 const password = process.env.PASS_MYSQL;
+const PORT = process.env.DB_PORT;
 
 const local = {
   dbName: 'sound_cloud',
@@ -30,6 +31,7 @@ const cloud = {
   config: {
     host: host,
     dialect: 'mysql',
+    port: PORT,
     logging: false,
     define: {
       freezeTableName: true,
