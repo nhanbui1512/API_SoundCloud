@@ -3,6 +3,7 @@ const SongController = require('../controllers/SongController');
 const multer = require('multer');
 const isLoginMiddleWare = require('../middlewares/isLoginMiddleware');
 const enCodedToken = require('../middlewares/encodedToken');
+const { createSongValidation } = require('../Validations/songValidation');
 
 // cấu hình lưu trữ file và kiểm tra loại file gửi lên
 var storage = multer.diskStorage({
@@ -81,6 +82,7 @@ router.post(
     { name: 'song', maxCount: 1 },
     { name: 'thumbNail', maxCount: 1 },
   ]),
+  createSongValidation,
   SongController.createSong,
 );
 

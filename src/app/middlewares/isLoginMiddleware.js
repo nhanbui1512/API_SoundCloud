@@ -1,4 +1,3 @@
-const { response } = require('express');
 const AuthorizeError = require('../errors/AuthorizeError');
 
 require('dotenv').config();

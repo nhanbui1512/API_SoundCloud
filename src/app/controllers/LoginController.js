@@ -41,7 +41,16 @@ class LoginController {
         user = user.toJSON();
         delete user.password;
         const token = token_require.GenerateAccpectToken(user);
-        return response.status(200).json({ result: true, token: token, user: user });
+        const refreshToken = token_require.GenerateRefreshToken(user);
+
+        if (user.refreshToken === '') {
+          user.refreshToken = refreshToken;
+          await user.save();
+        }
+
+        return response
+          .status(200)
+          .json({ result: true, token: token, refreshToken: refreshToken, user: user });
       }
     } catch (error) {
       console.log(error);

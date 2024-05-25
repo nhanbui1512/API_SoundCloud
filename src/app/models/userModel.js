@@ -47,6 +47,10 @@ const User = (sequelize) => {
         return fileName;
       },
     },
+    refreshToken: {
+      type: DataTypes.STRING,
+      defaultValue: '',
+    },
     createAt: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
