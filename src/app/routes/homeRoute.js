@@ -8,7 +8,7 @@ const router = express.Router();
  * tags:
  *   name: Home
  *   description: Home Route
- * /api/home:
+ * /api:
  *   get:
  *     summary: Health Check
  *     tags: [Home]

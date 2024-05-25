@@ -1,6 +1,7 @@
 const express = require('express');
 const GenreControler = require('../controllers/GenreController');
 const enCodedToken = require('../middlewares/encodedToken');
+const { genreValidation, getSongsValidation } = require('../Validations/genreValidation');
 
 const router = express.Router();
 
@@ -37,7 +38,7 @@ const router = express.Router();
  *          description: Not Found Data
  */
 
-router.post('/create', GenreControler.create);
+router.post('/create', genreValidation, GenreControler.create);
 
 /**
  * @swagger
@@ -99,6 +100,6 @@ router.get('/getall', GenreControler.getAll);
  *          description: Not Found Data
  */
 
-router.get('/get-songs', enCodedToken, GenreControler.getSongsById);
+router.get('/get-songs', getSongsValidation, enCodedToken, GenreControler.getSongsById);
 
 module.exports = router;

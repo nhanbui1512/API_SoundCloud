@@ -1,6 +1,7 @@
 const ValidationError = require('../errors/ValidationError');
 const { GenreModel, SongModel, UserModel, UserLikeSongModel } = require('../models');
 const { SqlizeToJSON, multiSqlizeToJSON } = require('../until/sequelize');
+const NotFoundError = require('../errors/NotFoundError');
 
 class GenreControler {
   async getAll(req, response) {
@@ -79,6 +80,8 @@ class GenreControler {
         },
       }),
       data = SqlizeToJSON(data);
+
+    if (data === null) throw new NotFoundError({ message: 'Not found genre' });
 
     const songIds = data.songs.map((song) => song.id);
 

@@ -19,7 +19,7 @@ const loopRouter = require('./loopRoute');
  *
  */
 function route(app) {
-  app.use('/api/home', homeRouter);
+  app.use('/api/', homeRouter);
   app.use('/api/genre', genreRouter);
   app.use('/api/song', songRouter);
   app.use('/api/user', userRouter);
