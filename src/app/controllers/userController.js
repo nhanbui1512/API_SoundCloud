@@ -107,7 +107,7 @@ class UserController {
 
     const newData = await UserModel.findByPk(userId, {
       attributes: {
-        exclude: ['password'],
+        exclude: ['password', 'refreshToken'],
       },
     });
 
@@ -192,7 +192,7 @@ class UserController {
         },
       ],
       attributes: {
-        exclude: ['password'],
+        exclude: ['password', 'refreshToken'],
       },
     });
 

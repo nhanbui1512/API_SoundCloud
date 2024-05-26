@@ -5,7 +5,7 @@ const UserController = require('../controllers/userController');
 const isLoginMiddleware = require('../middlewares/isLoginMiddleware');
 const encodedToken = require('../middlewares/encodedToken');
 const userController = require('../controllers/userController');
-const { registerValidation } = require('../Validations/userValidation');
+const { registerValidation, updateValidation } = require('../Validations/userValidation');
 
 const router = express.Router();
 
@@ -86,13 +86,21 @@ router.post('/register', registerValidation, UserController.registerUser);
  *               bio:
  *                type: string
  *                default: ""
+ *               avatar:
+ *                 type: file
  *
  *     responses:
  *       '200':
  *          description: Successful
  */
 
-router.put('/update', upload.single('avatar'), isLoginMiddleware, UserController.updateUser);
+router.put(
+  '/update',
+  upload.single('avatar'),
+  updateValidation,
+  isLoginMiddleware,
+  UserController.updateUser,
+);
 
 /**
  * @swagger

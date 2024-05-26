@@ -18,6 +18,23 @@ const registerValidation = async (req, response, next) => {
   }
 };
 
+const updateValidation = async (req, response, next) => {
+  const condition = Joi.object({
+    userName: Joi.string().min(3).max(50).trim().strict(),
+    city: Joi.string().min(3).max(50).trim().strict(),
+    country: Joi.string().min(3).max(50).trim().strict(),
+    bio: Joi.string().min(3).trim().strict(),
+  });
+
+  try {
+    await condition.validateAsync(req.body, { abortEarly: false });
+    return next();
+  } catch (error) {
+    return response.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ erros: error.message });
+  }
+};
+
 module.exports = {
   registerValidation,
+  updateValidation,
 };
