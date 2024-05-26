@@ -38,10 +38,13 @@ class LoginController {
             message: 'Email or password is wrong',
           });
 
-        user = user.toJSON();
-        delete user.password;
         const token = token_require.GenerateAccpectToken(user);
         const refreshToken = token_require.GenerateRefreshToken(user);
+
+        user = user.toJSON();
+
+        delete user.refreshToken;
+        delete user.password;
 
         if (user.refreshToken === '') {
           user.refreshToken = refreshToken;
