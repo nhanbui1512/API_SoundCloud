@@ -1,4 +1,6 @@
 const { UserModel, SongModel, FollowUserModel, sequelize, GenreModel } = require('../models');
+const UserRepository = require('../Repositories/userRepository');
+
 const ValidationError = require('../errors/ValidationError');
 const NotFoundError = require('../errors/NotFoundError');
 const { isValidEmail } = require('../until/email');
@@ -175,55 +177,7 @@ class UserController {
   // GET  /user/get-profile
   async getMyProfile(req, response, next) {
     const userId = req.userId;
-    var user = await UserModel.findByPk(userId, {
-      include: [
-        {
-          model: SongModel,
-          attributes: {
-            include: [
-              [
-                sequelize.literal(
-                  '(SELECT COUNT(*) FROM userlikesongs WHERE userlikesongs.songId = songs.id)',
-                ),
-                'likeCount',
-              ],
-            ],
-          },
-        },
-      ],
-      attributes: {
-        exclude: ['password', 'refreshToken'],
-      },
-    });
-
-    if (user !== null) {
-      user = SqlizeToJSON(user);
-
-      user.songs.sort((a, b) => {
-        return b.createAt - a.createAt;
-      });
-    }
-
-    var followers = await FollowUserModel.findAll({
-      where: {
-        [Op.or]: [{ followed: userId }, { user_id: userId }],
-      },
-    });
-
-    const followingCount = followers.reduce((total, follow) => {
-      if (follow.user_id === userId) return total + 1;
-      return total;
-    }, 0);
-
-    const followerCount = followers.reduce((total, follow) => {
-      if (follow.followed === userId) return total + 1;
-      return total;
-    }, 0);
-
-    user.track = user.songs.length;
-    user.followingNumber = followingCount;
-    user.followerNumber = followerCount;
-
+    const user = await UserRepository.findById(userId, null);
     return response.status(200).json({ data: user });
   }
 
@@ -233,78 +187,8 @@ class UserController {
     const userId = req.userId || null;
 
     if (!userIdFind) throw new ValidationError({ user_id: 'Not validation' });
-
-    var user = await UserModel.findByPk(userIdFind, {
-      include: [
-        {
-          model: SongModel,
-          attributes: {
-            include: [
-              [
-                sequelize.literal(
-                  '(SELECT COUNT(*) FROM userlikesongs WHERE userlikesongs.songId = songs.id)',
-                ),
-                'likeCount',
-              ],
-            ],
-          },
-        },
-      ],
-
-      attributes: {
-        exclude: ['password'],
-      },
-    });
-
-    if (user === null) throw new NotFoundError({ message: 'Not found User' });
-    // parse sequelize object -> JSON
-    user = SqlizeToJSON(user);
-
-    const userData = {
-      avatar: user.avatar,
-      createAtFormatTime: user.createAtFormatTime,
-      updateAtFormatTime: user.updateAtFormatTime,
-      id: user.id,
-      userName: user.userName,
-      email: user.email,
-      city: user.city,
-      country: user.country,
-      bio: user.bio,
-      createAt: user.createAt,
-      updateAt: user.updateAt,
-    };
-
-    user.songs = user.songs.map((song) => {
-      song.owner = userData;
-      return song;
-    });
-
-    if (user !== null) {
-      // lấy ra những người đã follow  user
-      var follower = await FollowUserModel.findAndCountAll({
-        where: {
-          followed: userIdFind,
-        },
-      });
-
-      var following = await FollowUserModel.findAndCountAll({
-        where: {
-          user_id: userIdFind,
-        },
-      });
-
-      user.followerNumber = follower.count;
-      user.followingNumber = following.count;
-      // Nếu người dùng có gửi token lên thì kiểm tra xem đã follow user tìm kiếm hay chưa
-
-      follower = multiSqlizeToJSON(follower.rows);
-      const isFollowed = follower.find(
-        (follower) => follower.user_id === userId && follower.followed === user.id,
-      );
-      user.isFollowed = isFollowed ? true : false;
-    } else {
-      throw new NotFoundError({ user: 'Not found User' });
-    }
+    const user = await UserRepository.findById(userIdFind, userId);
+    if (user === null) throw new NotFoundError({ message: 'Not found user' });
 
     return response.status(200).json({ data: user });
   }
