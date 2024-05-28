@@ -1,15 +1,19 @@
-const { UserModel, SongModel, FollowUserModel, sequelize, GenreModel } = require('../models');
-const UserRepository = require('../Repositories/userRepository');
+const { Op } = require('sequelize');
+const bcrypt = require('bcrypt');
+const cloudinary = require('cloudinary').v2;
+const { StatusCodes } = require('http-status-codes');
+
+const { UserModel, SongModel, FollowUserModel, sequelize } = require('../models');
+const userRepository = require('../Repositories/userRepository');
 
 const ValidationError = require('../errors/ValidationError');
 const NotFoundError = require('../errors/NotFoundError');
+
 const { isValidEmail } = require('../until/email');
 const { checkPass } = require('../until/checkPass');
 const { SqlizeToJSON, multiSqlizeToJSON } = require('../until/sequelize');
-const { Op } = require('sequelize');
-const bcrypt = require('bcrypt');
-
-const cloudinary = require('cloudinary').v2;
+const pagination = require('../until/paginations');
+const ConfligError = require('../errors/ConfligError');
 
 class UserController {
   // POST    /user/register
@@ -20,50 +24,29 @@ class UserController {
       password: req.body.password,
     };
 
-    if (!data.userName || !data.email || !data.password) {
-      throw new ValidationError({
-        message: 'The data is not filled',
-      });
-    }
+    if (!isValidEmail(data.email)) throw new ValidationError({ email: 'Not validation' });
 
-    if (!isValidEmail(data.email))
-      throw new ValidationError({
-        email: 'Email not validation',
-      });
+    const validatePassword = checkPass(data.password);
+    if (!validatePassword) throw new ValidationError({ password: 'Not validation' });
 
-    const checkpass = await checkPass(data.password);
-    if (checkpass) {
-      const user = await UserModel.findOne({
-        where: {
-          email: data.email,
-        },
-      });
+    const user = await userRepository.findOneByProps({ email: data.email });
+    if (user) throw new ConfligError({ email: 'Email is exist' });
 
-      if (user) {
-        throw new ValidationError({ email: 'Email is exist' });
-      } else {
-        const cryptPassword = await bcrypt.hash(data.password, 10);
+    const cryptPassword = await bcrypt.hash(data.password, 10);
 
-        var newUser = await UserModel.create({
-          userName: data.userName,
-          email: data.email,
-          password: cryptPassword,
-        });
+    var newUser = await userRepository.create({
+      userName: data.userName,
+      email: data.email,
+      password: cryptPassword,
+    });
 
-        newUser = newUser.toJSON();
-        newUser.password = data.password;
+    newUser = newUser.toJSON();
+    newUser.password = data.password;
 
-        return response.status(200).json({
-          isSuccess: true,
-          newUser,
-        });
-      }
-    } else {
-      return response.status(422).json({
-        isSuccess: false,
-        message: 'Password not validation',
-      });
-    }
+    return response.status(200).json({
+      isSuccess: true,
+      newUser,
+    });
   }
 
   // PUT  /user/update
@@ -96,8 +79,8 @@ class UserController {
       updateData.avatar = uploaded.url;
     }
 
-    await UserRepository.update(userId, updateData);
-    var newData = await UserRepository.findById(userId);
+    await userRepository.update(userId, updateData);
+    var newData = await userRepository.findById(userId);
     delete newData.songs;
 
     return response.status(200).json({ isSuccess: true, data: newData });
@@ -164,7 +147,7 @@ class UserController {
   // GET  /user/get-profile
   async getMyProfile(req, response, next) {
     const userId = req.userId;
-    const user = await UserRepository.findById(userId, null);
+    const user = await userRepository.findById(userId, null);
     return response.status(200).json({ data: user });
   }
 
@@ -174,7 +157,7 @@ class UserController {
     const userId = req.userId || null;
 
     if (!userIdFind) throw new ValidationError({ user_id: 'Not validation' });
-    const user = await UserRepository.findById(userIdFind, userId);
+    const user = await userRepository.findById(userIdFind, userId);
     if (user === null) throw new NotFoundError({ message: 'Not found user' });
 
     return response.status(200).json({ data: user });
@@ -231,51 +214,6 @@ class UserController {
     return response.status(200).json({ data: users });
   }
 
-  // GET /user
-  async getListUser(req, response) {
-    const userId = req.userId;
-    var quantity = Number(req.query.quantity);
-    if (!quantity) throw new ValidationError({ quantity: 'Not validation' });
-
-    if (quantity > 50) quantity = 50;
-
-    var users = await UserModel.findAll({
-        include: [
-          {
-            model: SongModel,
-          },
-        ],
-        attributes: {
-          exclude: ['password'],
-        },
-        limit: quantity,
-        order: sequelize.random(),
-      }),
-      users = multiSqlizeToJSON(users);
-
-    const user_ids = users.map((user) => user.id);
-
-    var followers = await FollowUserModel.findAll({
-        where: {
-          followed: user_ids,
-        },
-      }),
-      followers = multiSqlizeToJSON(followers);
-
-    users = users.map((user) => {
-      user.trackNumber = user.songs.length;
-      user.followerNumber = followers.filter((follower) => follower.followed === user.id).length;
-      user.isFollowed = followers.find(
-        (follower) => follower.user_id === userId && follower.followed === user.id,
-      )
-        ? true
-        : false;
-      return user;
-    });
-
-    return response.status(200).json({ data: users });
-  }
-
   async getTopSong(req, response) {
     const userId = req.userId;
 
@@ -320,6 +258,18 @@ class UserController {
     }
 
     return response.status(200).json({ data: topUsersWithSongs });
+  }
+  async getAll(req, response) {
+    const userId = req.userId;
+
+    const page = Number(req.query.page) || 0;
+    var perPage = Number(req.query.per_page) || undefined;
+    const offset = (page - 1) * perPage || undefined; // Tính OFFSET
+
+    const { count, rows } = await userRepository.findAll(perPage, offset, userId);
+    const pageData = pagination({ page, perPage, count });
+
+    return response.status(StatusCodes.OK).json({ ...pageData, data: rows });
   }
 }
 

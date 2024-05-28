@@ -1,9 +1,59 @@
-const { bool } = require('joi');
 const { UserModel, FollowUserModel, SongModel, sequelize } = require('../models');
 const { SqlizeToJSON, multiSqlizeToJSON } = require('../until/sequelize');
-const { Op } = require('sequelize');
 
 class UserRepository {
+  async create(data) {
+    try {
+      var newUser = await UserModel.create(data);
+      return newUser;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async findAll(limit, offset, userId = null) {
+    try {
+      var { count, rows } = await UserModel.findAndCountAll({
+        attributes: {
+          exclude: ['refreshToken', 'password'],
+          include: [
+            [
+              sequelize.literal(`(SELECT COUNT(*) FROM songs WHERE songs.ownerId = users.id)`),
+              'track',
+            ],
+            [
+              sequelize.literal(
+                `(SELECT COUNT(*) FROM follow_users WHERE follow_users.user_id = users.id)`,
+              ),
+              'followingNumber',
+            ],
+            [
+              sequelize.literal(
+                `(SELECT COUNT(*) FROM follow_users WHERE follow_users.followed = users.id)`,
+              ),
+              'followerNumber',
+            ],
+            [
+              sequelize.literal(
+                `(SELECT CASE WHEN EXISTS (SELECT 1 FROM follow_users WHERE user_id = ${userId} AND followed = users.id) THEN TRUE ELSE FALSE END AS result)`,
+              ),
+              'isFollowed',
+            ],
+          ],
+        },
+        limit: limit,
+        offset: offset,
+      });
+
+      rows = multiSqlizeToJSON(rows);
+      rows.map((user) => {
+        user.isFollowed = Boolean(user.isFollowed);
+      });
+      return { rows, count };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async findById(id, userId = null) {
     // id là của người muốn tìm kiếm , userId là của authorize
     try {
@@ -78,6 +128,7 @@ class UserRepository {
       throw error;
     }
   }
+
   async findOneByProps(props, attributes) {
     try {
       var user = await UserModel.findOne({
@@ -89,8 +140,20 @@ class UserRepository {
       throw error;
     }
   }
-  async findAll() {}
-  async deleteById(id) {}
+
+  async deleteById(id) {
+    try {
+      var result = await UserModel.destroy({
+        where: {
+          id: id,
+        },
+      });
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async update(id, userData) {
     try {
       var result = await UserModel.update(

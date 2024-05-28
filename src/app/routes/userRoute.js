@@ -5,7 +5,11 @@ const UserController = require('../controllers/userController');
 const isLoginMiddleware = require('../middlewares/isLoginMiddleware');
 const encodedToken = require('../middlewares/encodedToken');
 const userController = require('../controllers/userController');
-const { registerValidation, updateValidation } = require('../Validations/userValidation');
+const {
+  registerValidation,
+  updateValidation,
+  getAllValidation,
+} = require('../Validations/userValidation');
 
 const router = express.Router();
 
@@ -215,7 +219,7 @@ router.get('/user-top-song', encodedToken, UserController.getTopSong);
  *          description: Successful
  *
  */
-router.get('/get-users', encodedToken, userController.getListUser);
+router.get('/get-users', getAllValidation, encodedToken, userController.getAll);
 
 /**
  * @swagger
