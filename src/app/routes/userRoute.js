@@ -10,6 +10,7 @@ const {
   updateValidation,
   getAllValidation,
 } = require('../Validations/userValidation');
+const { adminAuth } = require('../middlewares/rolesMiddleware');
 
 const router = express.Router();
 
@@ -248,5 +249,33 @@ router.get('/get-users', getAllValidation, encodedToken, userController.getAll);
  *
  */
 router.get('/', encodedToken, UserController.findUser);
+
+/**
+ * @swagger
+ * tags:
+ *   name: User
+ * /api/user/{id}:
+ *   delete:
+ *     summary: Delete User
+ *     tags: [User]
+ *     parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: id user
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *     responses:
+ *       '200':
+ *          description: Successful
+ *       '404':
+ *          description: Not Found Data
+ *
+ */
+router.delete('/:id', isLoginMiddleware, adminAuth, userController.deleteUser);
 
 module.exports = router;

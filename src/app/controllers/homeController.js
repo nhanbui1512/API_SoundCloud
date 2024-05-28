@@ -1,4 +1,4 @@
-const { UserModel, SongModel } = require('../models');
+const { RoleModel, SongModel, UserModel } = require('../models');
 
 class HomeController {
   async index(req, res) {

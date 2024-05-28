@@ -141,6 +141,26 @@ class UserRepository {
     }
   }
 
+  async findAllByProps(props, attributes) {
+    try {
+      var user = await UserModel.findAll({
+        where: props,
+        attributes: attributes,
+        include: [
+          {
+            model: SongModel,
+            attributes: {
+              exclude: ['genreId', 'ownerId'],
+            },
+          },
+        ],
+      });
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async deleteById(id) {
     try {
       var result = await UserModel.destroy({

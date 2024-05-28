@@ -170,21 +170,19 @@ class UserController {
     const value = req.query.value;
     if (!value || value.trim() === '') throw new ValidationError({ value: 'Not validation' });
 
-    var users = await UserModel.findAll({
-      where: {
-        [Op.or]: [
-          { email: { [Op.like]: `%${value}%` } },
-          {
-            userName: {
-              [Op.like]: `%${value}%`,
-            },
+    const condition = {
+      [Op.or]: [
+        { email: { [Op.like]: `%${value}%` } },
+        {
+          userName: {
+            [Op.like]: `%${value}%`,
           },
-        ],
-      },
-      include: [{ model: SongModel }],
-      attributes: {
-        exclude: 'password',
-      },
+        },
+      ],
+    };
+
+    var users = await userRepository.findAllByProps(condition, {
+      exclude: ['password', 'refreshToken'],
     });
 
     const userIds = users.map((user) => user.id);
@@ -270,6 +268,12 @@ class UserController {
     const pageData = pagination({ page, perPage, count });
 
     return response.status(StatusCodes.OK).json({ ...pageData, data: rows });
+  }
+
+  async deleteUser(req, response) {
+    const { id } = req.params;
+    var alterRows = await userRepository.deleteById(id);
+    return response.status(200).json({ alterRows });
   }
 }
 
