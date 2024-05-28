@@ -78,9 +78,34 @@ class UserRepository {
       throw error;
     }
   }
+  async findOneByProps(props, attributes) {
+    try {
+      var user = await UserModel.findOne({
+        where: props,
+        attributes: attributes,
+      });
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
   async findAll() {}
   async deleteById(id) {}
-  async updateUser(id, userData) {}
+  async update(id, userData) {
+    try {
+      var result = await UserModel.update(
+        { ...userData, updateAt: new Date() },
+        {
+          where: {
+            id: id,
+          },
+        },
+      );
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = new UserRepository();

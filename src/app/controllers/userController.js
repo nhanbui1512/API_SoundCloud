@@ -69,27 +69,19 @@ class UserController {
   // PUT  /user/update
   async updateUser(req, response, next) {
     const file = req.file;
-
     if (file && file.mimetype.includes('image') === false)
       throw ValidationError({ file: 'File not validation' });
 
     const userId = req.userId;
 
-    const userName = req.body.userName;
-    const city = req.body.city;
-    const country = req.body.country;
-    const bio = req.body.bio;
+    var updateData = { ...req.body };
 
-    const user = await UserModel.findByPk(userId);
-
-    if (userName && userName.trim() !== '') user.userName = userName;
-    if (city && city.trim() !== '') user.city = city;
-    if (country && country.trim() !== '') user.country = country;
-    if (bio && bio.trim() !== '') user.bio = bio;
+    if (Object.keys(updateData).length === 0) {
+      return response.status(200).json({ status: 'successs' });
+    }
 
     if (file) {
       // Các tùy chọn chuyển đổi ảnh và tải lên
-
       const uploadOptions = {
         transformation: {
           width: 400, // Chiều rộng mới
@@ -101,17 +93,12 @@ class UserController {
         resource_type: 'auto',
       };
       const uploaded = await cloudinary.uploader.upload(file.path, uploadOptions);
-      user.avatar = uploaded.url;
+      updateData.avatar = uploaded.url;
     }
 
-    user.updateAt = new Date();
-    await user.save();
-
-    const newData = await UserModel.findByPk(userId, {
-      attributes: {
-        exclude: ['password', 'refreshToken'],
-      },
-    });
+    await UserRepository.update(userId, updateData);
+    var newData = await UserRepository.findById(userId);
+    delete newData.songs;
 
     return response.status(200).json({ isSuccess: true, data: newData });
   }

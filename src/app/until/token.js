@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 module.exports = {
-  GenerateAccpectToken(user) {
+  GenerateAcessToken(user) {
     return jwt.sign(
       {
         userId: user.id,

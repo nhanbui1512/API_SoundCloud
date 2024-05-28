@@ -27,10 +27,9 @@ class AuthController {
         return response.status(StatusCodes.FORBIDDEN).json({ message: 'Forbidden error' });
 
       // generate new accessToken
-      const newAccessToken = token_require.GenerateAccpectToken(user);
+      const newAccessToken = token_require.GenerateAcessToken(user);
       return response.status(200).json({ status: 'success', accessToken: newAccessToken });
     } catch (error) {
-      
       throw new AuthorizeError({ authorize: 'Accesstoken not validation' });
     }
   }
