@@ -54,8 +54,26 @@ const getAllValidation = async (req, response, next) => {
   }
 };
 
+const changePassValidation = async (req, response, next) => {
+  const condition = Joi.object({
+    oldPassword: Joi.string().min(10).max(30).required().trim().strict(),
+    newPassword: Joi.string().min(10).max(30).required().trim().strict(),
+    refreshToken: Joi.string().required(),
+  });
+
+  try {
+    condition.validateAsync(req.body, { abortEarly: false });
+    return next();
+  } catch (error) {
+    return response.status(StatusCodes.UNPROCESSABLE_ENTITY).json({
+      errors: error.message,
+    });
+  }
+};
+
 module.exports = {
   registerValidation,
   updateValidation,
   getAllValidation,
+  changePassValidation,
 };

@@ -38,6 +38,7 @@ class UserController {
       userName: data.userName,
       email: data.email,
       password: cryptPassword,
+      roleId: 2,
     });
 
     newUser = newUser.toJSON();
@@ -89,59 +90,35 @@ class UserController {
   // PUT  /user/change-password
   async changePassWord(req, response, next) {
     const userId = req.userId;
-    const ownPass = req.body.ownPassWord;
+    const oldPass = req.body.oldPassword;
     const newPass = req.body.newPassWord;
-    const confirmPass = req.body.confirmPassWord;
-    if (!ownPass || !newPass || !confirmPass) {
-      return response.status(400).json({
-        result: false,
-        message: 'Must be filled out completely',
-      });
-    }
-    if (newPass != confirmPass) {
-      return response.status(400).json({
-        result: false,
-        message: 'Pass new and comfirm is not alike',
-      });
-    } else {
-      const user = await UserModel.findOne({
-        where: {
-          id: userId,
-        },
-      });
 
-      if (user !== null) {
-        // kiểm tra mật khẩu cũ có đúng không
-        let isEqual = await bcrypt.compare(ownPass, user.password);
+    const user = await UserModel.findOne({
+      where: {
+        id: userId,
+      },
+    });
 
-        if (!isEqual) throw new NotFoundError({ user: 'Old Password is wrong' });
+    if (user === null) throw new NotFoundError({ message: 'Not found user' });
+    // kiểm tra mật khẩu cũ có đúng không
+    let isEqual = await bcrypt.compare(oldPass, user.password);
+    if (!isEqual) throw new NotFoundError({ user: 'Old Password is wrong' });
 
-        const checkpass = await checkPass(newPass);
+    //kiểm tra chuẩn mật khẩu
+    const checkpass = checkPass(newPass);
+    if (!checkpass) throw new ValidationError({ newPassword: 'Not validaiton' });
 
-        //kiểm tra chuẩn mật khẩu
-        if (checkpass) {
-          const cryptPassword = await bcrypt.hash(newPass, 10);
-          user.password = cryptPassword;
+    const cryptPassword = await bcrypt.hash(newPass, 10);
+    user.password = cryptPassword;
 
-          var newUser = await user.save();
-          newUser = newUser.toJSON();
-          newUser.password = newPass;
-          return response.status(200).json({
-            result: true,
-            data: { newUser },
-            message: 'User was update pass successfully',
-          });
-        } else {
-          // không chuẩn
-          return response.status(422).json({
-            result: false,
-            message: 'Password unsuccessful',
-          });
-        }
-      } else {
-        throw new NotFoundError({ user: 'Not found User' });
-      }
-    }
+    var newUser = await user.save();
+    newUser = newUser.toJSON();
+    newUser.password = newPass;
+
+    return response.status(200).json({
+      message: 'User was update pass successfully',
+      data: { newUser },
+    });
   }
 
   // GET  /user/get-profile

@@ -9,6 +9,7 @@ const {
   registerValidation,
   updateValidation,
   getAllValidation,
+  changePassValidation,
 } = require('../Validations/userValidation');
 const { adminAuth } = require('../middlewares/rolesMiddleware');
 
@@ -126,17 +127,19 @@ router.put(
  *                 type: string
  *               newPassWord:
  *                 type: string
- *               confirmPassWord:
- *                 type: string
  *             required:
  *              - ownPassWord
  *              - newPassWord
- *              - confirmPassWord
  *     responses:
  *       '200':
  *          description: Successful
  */
-router.put('/change-password', isLoginMiddleware, UserController.changePassWord);
+router.put(
+  '/change-password',
+  isLoginMiddleware,
+  changePassValidation,
+  UserController.changePassWord,
+);
 
 /**
  * @swagger
