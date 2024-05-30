@@ -1,7 +1,13 @@
 const express = require('express');
-const GenreControler = require('../controllers/GenreController');
+const GenreController = require('../controllers/GenreController');
 const enCodedToken = require('../middlewares/encodedToken');
-const { genreValidation, getSongsValidation } = require('../Validations/genreValidation');
+const {
+  genreValidation,
+  getSongsValidation,
+  deleteGenreValidation,
+} = require('../Validations/genreValidation');
+const isLoginMiddleWare = require('../middlewares/isLoginMiddleware');
+const { adminAuth } = require('../middlewares/rolesMiddleware');
 
 const router = express.Router();
 
@@ -38,7 +44,7 @@ const router = express.Router();
  *          description: Not Found Data
  */
 
-router.post('/create', genreValidation, GenreControler.create);
+router.post('/create', genreValidation, GenreController.create);
 
 /**
  * @swagger
@@ -58,7 +64,7 @@ router.post('/create', genreValidation, GenreControler.create);
  *          description: Not Found Data
  */
 
-router.get('/getall', GenreControler.getAll);
+router.get('/getall', GenreController.getAll);
 
 /**
  * @swagger
@@ -100,6 +106,40 @@ router.get('/getall', GenreControler.getAll);
  *          description: Not Found Data
  */
 
-router.get('/get-songs', getSongsValidation, enCodedToken, GenreControler.getSongsById);
+router.get('/get-songs', getSongsValidation, enCodedToken, GenreController.getSongsById);
+
+/**
+ * @swagger
+
+ * /api/genre/{id}:
+ *   delete:
+ *     summary: get songs of genre by genre id
+ *     tags: [Genre]
+ *     parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *          default: 1
+ *        required: true
+ *        description: genre id
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *     responses:
+ *       '200':
+ *          description: Successful
+ *       '404':
+ *          description: Not Found Data
+ */
+
+router.delete(
+  '/:id',
+  isLoginMiddleWare,
+  adminAuth,
+  deleteGenreValidation,
+  GenreController.deleteGenre,
+);
 
 module.exports = router;

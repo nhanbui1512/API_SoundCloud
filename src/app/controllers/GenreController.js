@@ -2,6 +2,8 @@ const ValidationError = require('../errors/ValidationError');
 const { GenreModel, SongModel, UserModel, UserLikeSongModel } = require('../models');
 const { SqlizeToJSON, multiSqlizeToJSON } = require('../until/sequelize');
 const NotFoundError = require('../errors/NotFoundError');
+const genreRepository = require('../Repositories/genreRepository');
+const { StatusCodes } = require('http-status-codes');
 
 class GenreControler {
   async getAll(req, response) {
@@ -100,6 +102,12 @@ class GenreControler {
     });
 
     return response.status(200).json({ data: data });
+  }
+
+  async deleteGenre(req, response) {
+    const genreid = req.params.id;
+    const result = await genreRepository.delete(genreid);
+    return response.status(StatusCodes.OK).json({ result });
   }
 }
 

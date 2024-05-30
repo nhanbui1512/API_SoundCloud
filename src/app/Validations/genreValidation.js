@@ -1,3 +1,4 @@
+const { response } = require('express');
 const { StatusCodes } = require('http-status-codes');
 const Joi = require('joi');
 
@@ -29,7 +30,19 @@ const getSongsValidation = async (req, response, next) => {
   }
 };
 
+const deleteGenreValidation = async (req, response, next) => {
+  try {
+    const condition = Joi.object({
+      id: Joi.number().integer().required(),
+    });
+    await condition.validateAsync(req.params);
+    return next();
+  } catch (error) {
+    return response.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ errors: error.message });
+  }
+};
 module.exports = {
   genreValidation,
   getSongsValidation,
+  deleteGenreValidation,
 };
