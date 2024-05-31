@@ -113,7 +113,7 @@ router.get('/get-songs', getSongsValidation, enCodedToken, GenreController.getSo
 
  * /api/genre/{id}:
  *   delete:
- *     summary: get songs of genre by genre id
+ *     summary: Delete genre
  *     tags: [Genre]
  *     parameters:
  *      - in: path
