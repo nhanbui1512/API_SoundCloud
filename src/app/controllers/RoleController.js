@@ -1,21 +1,21 @@
-const { RoleModel } = require('../models');
+const { StatusCodes } = require('http-status-codes');
+const roleRepository = require('../Repositories/roleRepository');
 
 class RoleController {
   async createRole(req, res) {
-    try {
-      const song = await SongModel.findOne({});
-      return res.status(200).json({
-        message: 'Server is ready',
-        status: 200,
-        testData: song,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        status: 500,
-        message: 'Internal Error',
-        testData: {},
-      });
-    }
+    const roleName = req.body.name;
+    const isExist = await roleRepository.findByName(roleName);
+    if (isExist.length > 0)
+      return res.status(StatusCodes.CONFLICT).json({ message: 'Role name is existed' });
+    const newRole = await roleRepository.create(roleName);
+    return res.status(StatusCodes.OK).json({ data: newRole });
+  }
+
+  async updateRole(req, responses) {
+    const roleName = req.body.name;
+    const id = req.params.id;
+    const newData = await roleRepository.update(roleName, id);
+    return responses.status(200).json({ status: 'success', newData });
   }
 }
 module.exports = new RoleController();
