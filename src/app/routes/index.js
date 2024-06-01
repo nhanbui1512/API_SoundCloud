@@ -8,6 +8,7 @@ const followRouter = require('./followRoute');
 const playlistRouter = require('./playlistRoute');
 const loopRouter = require('./loopRoute');
 const authRouter = require('./authRoute');
+const roleRouter = require('./roleRoute');
 
 /**
  * @swagger
@@ -30,6 +31,7 @@ function route(app) {
   app.use('/api/playlist', playlistRouter);
   app.use('/api/loop', loopRouter);
   app.use('/api/auth', authRouter);
+  app.use('/api/role', roleRouter);
 }
 
 module.exports = route;
