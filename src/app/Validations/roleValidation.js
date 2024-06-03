@@ -1,7 +1,7 @@
 const Joi = require('joi');
 const { StatusCodes } = require('http-status-codes');
 
-const createRoleValidation = async (req, response, next) => {
+const roleValidation = async (req, response, next) => {
   try {
     const condition = Joi.object({
       name: Joi.string().min(4).max(10).required().trim().strict(),
@@ -12,6 +12,7 @@ const createRoleValidation = async (req, response, next) => {
     return response.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ errors: error.message });
   }
 };
+
 module.exports = {
-  createRoleValidation,
+  roleValidation,
 };

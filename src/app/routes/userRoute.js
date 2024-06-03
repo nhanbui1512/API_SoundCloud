@@ -261,6 +261,8 @@ router.get('/', encodedToken, UserController.findUser);
  *   delete:
  *     summary: Delete User
  *     tags: [User]
+ *     security:
+ *      - bearerAuth: []
  *     parameters:
  *      - in: path
  *        name: id

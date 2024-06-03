@@ -2,6 +2,11 @@ const { StatusCodes } = require('http-status-codes');
 const roleRepository = require('../Repositories/roleRepository');
 
 class RoleController {
+  async getRoles(req, response) {
+    const roles = await roleRepository.findAll();
+    return response.status(StatusCodes.OK).json({ data: roles });
+  }
+
   async createRole(req, res) {
     const roleName = req.body.name;
     const isExist = await roleRepository.findByName(roleName);

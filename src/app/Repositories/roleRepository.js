@@ -2,6 +2,9 @@ const NotFoundError = require('../errors/NotFoundError');
 const { RoleModel } = require('../models');
 
 class RoleRepository {
+  async findAll() {
+    return await RoleModel.findAll();
+  }
   async findById(id) {
     return await RoleModel.findByPk(id);
   }
