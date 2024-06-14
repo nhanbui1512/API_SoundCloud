@@ -1,7 +1,7 @@
 const express = require('express');
 const SongController = require('../controllers/SongController');
 const multer = require('multer');
-const isLoginMiddleWare = require('../middlewares/isLoginMiddleware');
+const authMiddleware = require('../middlewares/authMiddleware');
 const enCodedToken = require('../middlewares/encodedToken');
 const { createSongValidation } = require('../Validations/songValidation');
 
@@ -77,7 +77,7 @@ const router = express.Router();
 
 router.post(
   '/create',
-  isLoginMiddleWare,
+  authMiddleware,
   upload.fields([
     { name: 'song', maxCount: 1 },
     { name: 'thumbNail', maxCount: 1 },
@@ -218,7 +218,7 @@ router.get('/recommend', enCodedToken, SongController.RecommendSongs);
  *          description: Not Found Data
  */
 
-router.get('/liked', isLoginMiddleWare, SongController.getSongsLiked);
+router.get('/liked', authMiddleware, SongController.getSongsLiked);
 
 /**
  * @swagger
@@ -248,7 +248,7 @@ router.get('/liked', isLoginMiddleWare, SongController.getSongsLiked);
  *          description: Not Found Data
  */
 
-router.post('/like', isLoginMiddleWare, SongController.LikeSong);
+router.post('/like', authMiddleware, SongController.LikeSong);
 
 /**
  * @swagger
@@ -278,7 +278,7 @@ router.post('/like', isLoginMiddleWare, SongController.LikeSong);
  *          description: Not Found Data
  */
 
-router.delete('/unlike', isLoginMiddleWare, SongController.UnlikeSong);
+router.delete('/unlike', authMiddleware, SongController.UnlikeSong);
 
 /**
  * @swagger
@@ -308,5 +308,5 @@ router.delete('/unlike', isLoginMiddleWare, SongController.UnlikeSong);
  *          description: Not Found Data
  */
 
-router.delete('/', isLoginMiddleWare, SongController.deleteSong);
+router.delete('/', authMiddleware, SongController.deleteSong);
 module.exports = router;

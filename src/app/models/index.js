@@ -13,6 +13,8 @@ const Genre = require('./genreModel');
 const FollowUser = require('./followUser');
 const FollowPlaylist = require('./followPlaylist');
 const SongPlaylist = require('./SongPlaylistModel');
+const Notification = require('./notificationModel');
+const NotiType = require('./notiTypeModel');
 
 dotenv.config();
 
@@ -27,6 +29,8 @@ const FollowUserModel = FollowUser(sequelize);
 const FollowPlaylistModel = FollowPlaylist(sequelize);
 const SongPlaylistModel = SongPlaylist(sequelize);
 const RoleModel = Role(sequelize);
+const NotificationModel = Notification(sequelize);
+const NotiTypeModel = NotiType(sequelize);
 
 // relationship
 
@@ -79,6 +83,9 @@ GenreModel.hasMany(SongModel, { onDelete: 'CASCADE' });
 UserModel.hasMany(PlayListModel, { onDelete: 'CASCADE' }); // USER - PLAYLIST
 PlayListModel.belongsTo(UserModel, { onDelete: 'CASCADE' });
 
+NotiTypeModel.hasMany(NotificationModel, { onDelete: 'CASCADE' });
+NotificationModel.belongsTo(NotiTypeModel, { onDelete: 'CASCADE' });
+
 module.exports = {
   sequelize,
   UserModel: sequelize.models.users,
@@ -90,4 +97,6 @@ module.exports = {
   FollowPlaylistModel: sequelize.models.follow_playlists,
   UserLikeSongModel: sequelize.models.userlikesongs,
   RoleModel: sequelize.models.roles,
+  NotificationModel: sequelize.models.notifications,
+  NotiTypeModel: sequelize.models.noti_types,
 };

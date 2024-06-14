@@ -1,6 +1,6 @@
 const express = require('express');
 const PlaylistController = require('../controllers/PlaylistController');
-const isLoginMiddleware = require('../middlewares/isLoginMiddleware');
+const authMiddleware = require('../middlewares/authMiddleware');
 const encodedToken = require('../middlewares/encodedToken');
 
 const router = express.Router();
@@ -122,7 +122,7 @@ router.get('/get-playlist-user', encodedToken, PlaylistController.getPlaylistByU
  *          description: Not Found Data
  *
  */
-router.get('/follow-playlists', isLoginMiddleware, PlaylistController.MyPlaylists); //playlist following
+router.get('/follow-playlists', authMiddleware, PlaylistController.MyPlaylists); //playlist following
 
 /**
  * @swagger
@@ -151,7 +151,7 @@ router.get('/follow-playlists', isLoginMiddleware, PlaylistController.MyPlaylist
  *          description: Not Found Data
  *
  */
-router.get('/playlist-followed', isLoginMiddleware, PlaylistController.getUserFollowPlaylist); //playlist followed users
+router.get('/playlist-followed', authMiddleware, PlaylistController.getUserFollowPlaylist); //playlist followed users
 
 /**
  * @swagger
@@ -213,7 +213,7 @@ router.get('/random', encodedToken, PlaylistController.getRandomPlaylist);
  *          description: Not Found Data
  *
  */
-router.post('/create', isLoginMiddleware, PlaylistController.createPlaylist);
+router.post('/create', authMiddleware, PlaylistController.createPlaylist);
 
 /**
  * @swagger
@@ -254,7 +254,7 @@ router.post('/create', isLoginMiddleware, PlaylistController.createPlaylist);
  *          description: Not Found Data
  *
  */
-router.post('/add-songs', isLoginMiddleware, PlaylistController.addSongsToPlaylist);
+router.post('/add-songs', authMiddleware, PlaylistController.addSongsToPlaylist);
 
 /**
  * @swagger
@@ -295,7 +295,7 @@ router.post('/add-songs', isLoginMiddleware, PlaylistController.addSongsToPlayli
  *          description: Not Found Data
  *
  */
-router.put('/update', isLoginMiddleware, PlaylistController.updatePlaylist);
+router.put('/update', authMiddleware, PlaylistController.updatePlaylist);
 
 /**
  * @swagger
@@ -333,7 +333,7 @@ router.put('/update', isLoginMiddleware, PlaylistController.updatePlaylist);
  *          description: Not Found Data
  *
  */
-router.delete('/remove-songs', isLoginMiddleware, PlaylistController.removeSongsToPlaylist);
+router.delete('/remove-songs', authMiddleware, PlaylistController.removeSongsToPlaylist);
 
 /**
  * @swagger
@@ -359,6 +359,6 @@ router.delete('/remove-songs', isLoginMiddleware, PlaylistController.removeSongs
  *          description: Not Found Data
  *
  */
-router.delete('/', isLoginMiddleware, PlaylistController.deletePlaylistById);
+router.delete('/', authMiddleware, PlaylistController.deletePlaylistById);
 
 module.exports = router;

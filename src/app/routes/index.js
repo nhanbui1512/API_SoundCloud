@@ -8,6 +8,9 @@ const playlistRouter = require('./playlistRoute');
 const loopRouter = require('./loopRoute');
 const authRouter = require('./authRoute');
 const roleRouter = require('./roleRoute');
+const notiTypeRouter = require('./notiTypeRoute');
+const authMiddleware = require('../middlewares/authMiddleware');
+const { adminAuth } = require('../middlewares/rolesMiddleware');
 
 /**
  * @swagger
@@ -30,6 +33,7 @@ function route(app) {
   app.use('/api/loop', loopRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/role', roleRouter);
+  app.use('/api/noti-type', authMiddleware, adminAuth, notiTypeRouter);
 }
 
 module.exports = route;

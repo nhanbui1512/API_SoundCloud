@@ -1,5 +1,5 @@
 const express = require('express');
-const isLoginMiddleWare = require('../middlewares/isLoginMiddleware');
+const authMiddleware = require('../middlewares/authMiddleware');
 const { adminAuth } = require('../middlewares/rolesMiddleware');
 const { roleValidation } = require('../Validations/roleValidation');
 const RoleController = require('../controllers/RoleController');
@@ -34,7 +34,7 @@ const router = express.Router();
  *          description: Successful
  *
  */
-router.post('/', isLoginMiddleWare, adminAuth, roleValidation, RoleController.createRole);
+router.post('/', authMiddleware, adminAuth, roleValidation, RoleController.createRole);
 
 /**
  * @swagger
@@ -63,7 +63,7 @@ router.post('/', isLoginMiddleWare, adminAuth, roleValidation, RoleController.cr
  *       '404':
  *          description: Not Found Data
  */
-router.put('/', isLoginMiddleWare, adminAuth, roleValidation, RoleController.updateRole);
+router.put('/', authMiddleware, adminAuth, roleValidation, RoleController.updateRole);
 
 /**
  * @swagger
@@ -84,6 +84,6 @@ router.put('/', isLoginMiddleWare, adminAuth, roleValidation, RoleController.upd
  *       '404':
  *          description: Not Found Data
  */
-router.get('/', isLoginMiddleWare, adminAuth, RoleController.getRoles);
+router.get('/', authMiddleware, adminAuth, RoleController.getRoles);
 
 module.exports = router;
