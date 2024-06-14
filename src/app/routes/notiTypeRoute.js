@@ -1,7 +1,10 @@
 const express = require('express');
 const route = express.Router();
 const NotiTypeController = require('../controllers/NotiTypeController');
-const { notiTypeValidation } = require('../Validations/notiTypeValidation');
+const {
+  notiTypeValidation,
+  deleteNotiTypeValidation,
+} = require('../Validations/notiTypeValidation');
 
 /**
  * @swagger
@@ -35,4 +38,26 @@ const { notiTypeValidation } = require('../Validations/notiTypeValidation');
  *
  */
 route.post('/', notiTypeValidation, NotiTypeController.createNotiType);
+
+/**
+ * @swagger
+ * /api/noti-type/{id}:
+ *   delete:
+ *     summary: Delete a type of notification
+ *     tags: [NotiTypes]
+ *     security:
+ *      - bearerAuth: []
+ *     parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *          default: 1
+ *        required: true
+ *        description: notitype id
+ *     responses:
+ *       '200':
+ *          description: Successful
+ */
+route.delete('/:id', deleteNotiTypeValidation, NotiTypeController.deleteNotitype);
 module.exports = route;
