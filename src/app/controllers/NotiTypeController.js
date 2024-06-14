@@ -1,7 +1,13 @@
 const ConfligError = require('../errors/ConfligError');
+const NotFoundError = require('../errors/NotFoundError');
 const { NotiTypeModel } = require('../models');
 
 class NotiTypeController {
+  async getAll(req, responses) {
+    const data = await NotiTypeModel.findAll();
+    return responses.status(200).json({ data });
+  }
+
   async createNotiType(req, responses) {
     const isExist = await NotiTypeModel.findOne({
       where: {
@@ -15,8 +21,14 @@ class NotiTypeController {
 
   async deleteNotitype(req, responses) {
     const { id } = req.params;
-    console.log(id);
-    return responses.send('ok');
+    const result = await NotiTypeModel.destroy({
+      where: {
+        id: id,
+      },
+    });
+
+    if (result === 0) throw new NotFoundError({ message: 'Not found notification type' });
+    return responses.status(200).json({ status: 'Success' });
   }
 }
 module.exports = new NotiTypeController();

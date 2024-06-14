@@ -16,6 +16,21 @@ const {
 /**
  * @swagger
  * /api/noti-type:
+ *   get:
+ *     summary: get all types of notification
+ *     tags: [NotiTypes]
+ *     security:
+ *      - bearerAuth: []
+ *     responses:
+ *       '200':
+ *          description: Successful
+ *
+ */
+route.get('/', NotiTypeController.getAll);
+
+/**
+ * @swagger
+ * /api/noti-type:
  *   post:
  *     summary: Create a type of notification
  *     tags: [NotiTypes]
