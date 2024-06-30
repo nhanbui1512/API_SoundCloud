@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const UserController = require('../controllers/userController');
 
-const isLoginMiddleware = require('../middlewares/isLoginMiddleware');
+const authMiddleware = require('../middlewares/authMiddleware');
 const encodedToken = require('../middlewares/encodedToken');
 const userController = require('../controllers/userController');
 const {
@@ -104,7 +104,7 @@ router.put(
   '/update',
   upload.single('avatar'),
   updateValidation,
-  isLoginMiddleware,
+  authMiddleware,
   UserController.updateUser,
 );
 
@@ -134,12 +134,7 @@ router.put(
  *       '200':
  *          description: Successful
  */
-router.put(
-  '/change-password',
-  isLoginMiddleware,
-  changePassValidation,
-  UserController.changePassWord,
-);
+router.put('/change-password', authMiddleware, changePassValidation, UserController.changePassWord);
 
 /**
  * @swagger
@@ -159,7 +154,7 @@ router.put(
  *       '401':
  *          description: Authorize Error
  */
-router.get('/get-profile', isLoginMiddleware, UserController.getMyProfile);
+router.get('/get-profile', authMiddleware, UserController.getMyProfile);
 
 /**
  * @swagger
@@ -261,6 +256,8 @@ router.get('/', encodedToken, UserController.findUser);
  *   delete:
  *     summary: Delete User
  *     tags: [User]
+ *     security:
+ *      - bearerAuth: []
  *     parameters:
  *      - in: path
  *        name: id
@@ -279,6 +276,6 @@ router.get('/', encodedToken, UserController.findUser);
  *          description: Not Found Data
  *
  */
-router.delete('/:id', isLoginMiddleware, adminAuth, userController.deleteUser);
+router.delete('/:id', authMiddleware, adminAuth, userController.deleteUser);
 
 module.exports = router;

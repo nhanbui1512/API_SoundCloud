@@ -14,6 +14,8 @@ const FollowUser = require('./followUser');
 const FollowPlaylist = require('./followPlaylist');
 const SongPlaylist = require('./SongPlaylistModel');
 const Comment = require('./commentModel');
+const Notification = require('./notificationModel');
+const NotiType = require('./notiTypeModel');
 
 dotenv.config();
 
@@ -29,6 +31,9 @@ const FollowPlaylistModel = FollowPlaylist(sequelize);
 const SongPlaylistModel = SongPlaylist(sequelize);
 const RoleModel = Role(sequelize);
 const CommentModel = Comment(sequelize);
+
+const NotificationModel = Notification(sequelize);
+const NotiTypeModel = NotiType(sequelize);
 
 // relationship
 
@@ -92,6 +97,8 @@ CommentModel.belongsTo(UserModel, { foreignKey: 'userId', onDelete: 'CASCADE' })
 // Quan hệ self-referential của Comment
 CommentModel.hasMany(CommentModel, { as: 'Replies', foreignKey: 'parentId' });
 CommentModel.belongsTo(CommentModel, { as: 'Parent', foreignKey: 'parentId' });
+NotiTypeModel.hasMany(NotificationModel, { onDelete: 'CASCADE' });
+NotificationModel.belongsTo(NotiTypeModel, { onDelete: 'CASCADE' });
 
 module.exports = {
   sequelize,
@@ -105,4 +112,6 @@ module.exports = {
   UserLikeSongModel: sequelize.models.userlikesongs,
   RoleModel: sequelize.models.roles,
   CommentModel: sequelize.models.comments,
+  NotificationModel: sequelize.models.notifications,
+  NotiTypeModel: sequelize.models.noti_types,
 };

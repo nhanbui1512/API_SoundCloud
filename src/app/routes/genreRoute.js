@@ -6,7 +6,7 @@ const {
   getSongsValidation,
   deleteGenreValidation,
 } = require('../Validations/genreValidation');
-const isLoginMiddleWare = require('../middlewares/isLoginMiddleware');
+const authMiddleware = require('../middlewares/authMiddleware');
 const { adminAuth } = require('../middlewares/rolesMiddleware');
 
 const router = express.Router();
@@ -136,7 +136,7 @@ router.get('/get-songs', getSongsValidation, enCodedToken, GenreController.getSo
 
 router.delete(
   '/:id',
-  isLoginMiddleWare,
+  authMiddleware,
   adminAuth,
   deleteGenreValidation,
   GenreController.deleteGenre,

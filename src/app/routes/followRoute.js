@@ -1,6 +1,6 @@
 const express = require('express');
 const FollowController = require('../controllers/FollowController');
-const isLoginMiddleware = require('../middlewares/isLoginMiddleware');
+const authMiddleware = require('../middlewares/authMiddleware');
 const enCodedToken = require('../middlewares/encodedToken');
 
 const router = express.Router();
@@ -62,7 +62,7 @@ router.get('/', enCodedToken, FollowController.getCountFollowByIdUser);
  */
 
 // những người mình đang theo dõi
-router.get('/following', isLoginMiddleware, FollowController.getMyFollowing);
+router.get('/following', authMiddleware, FollowController.getMyFollowing);
 
 /**
  * @swagger
@@ -84,7 +84,7 @@ router.get('/following', isLoginMiddleware, FollowController.getMyFollowing);
  *          description: Not Found Data
  */
 // những người theo dõi mình
-router.get('/followers', isLoginMiddleware, FollowController.getMyFollowers);
+router.get('/followers', authMiddleware, FollowController.getMyFollowers);
 
 /**
  * @swagger
@@ -105,7 +105,7 @@ router.get('/followers', isLoginMiddleware, FollowController.getMyFollowers);
  *       '404':
  *          description: Not Found Data
  */
-router.get('/playlists', isLoginMiddleware, FollowController.MyPlaylists);
+router.get('/playlists', authMiddleware, FollowController.MyPlaylists);
 
 /**
  * @swagger
@@ -134,7 +134,7 @@ router.get('/playlists', isLoginMiddleware, FollowController.MyPlaylists);
  *       '404':
  *          description: Not Found Data
  */
-router.post('/playlists', isLoginMiddleware, FollowController.followPlaylist);
+router.post('/playlists', authMiddleware, FollowController.followPlaylist);
 
 /**
  * @swagger
@@ -163,7 +163,7 @@ router.post('/playlists', isLoginMiddleware, FollowController.followPlaylist);
  *       '404':
  *          description: Not Found Data
  */
-router.delete('/playlists', isLoginMiddleware, FollowController.Unfollowplaylist);
+router.delete('/playlists', authMiddleware, FollowController.Unfollowplaylist);
 
 /**
  * @swagger
@@ -193,7 +193,7 @@ router.delete('/playlists', isLoginMiddleware, FollowController.Unfollowplaylist
  *          description: Not Found Data
  */
 
-router.delete('/', isLoginMiddleware, FollowController.unFollowUser);
+router.delete('/', authMiddleware, FollowController.unFollowUser);
 
 /**
  * @swagger
@@ -223,5 +223,5 @@ router.delete('/', isLoginMiddleware, FollowController.unFollowUser);
  *          description: Not Found Data
  */
 
-router.post('/', isLoginMiddleware, FollowController.followUser);
+router.post('/', authMiddleware, FollowController.followUser);
 module.exports = router;
