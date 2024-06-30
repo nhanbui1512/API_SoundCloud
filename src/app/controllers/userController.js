@@ -237,10 +237,9 @@ class UserController {
   async getAll(req, response) {
     const userId = req.userId;
 
-    const page = Number(req.query.page) || 0;
-    var perPage = Number(req.query.per_page) || undefined;
-    const offset = (page - 1) * perPage || undefined; // Tính OFFSET
-
+    const page = Number(req.query.page) || 1;
+    var perPage = Number(req.query.per_page) || 5;
+    const offset = (page - 1) * perPage; // Tính OFFSET
     const { count, rows } = await userRepository.findAll(perPage, offset, userId);
     const pageData = pagination({ page, perPage, count });
 

@@ -223,7 +223,7 @@ router.get('/user-top-song', encodedToken, UserController.getTopSong);
  *          description: Successful
  *
  */
-router.get('/get-users', getAllValidation, encodedToken, userController.getAll);
+router.get('/get-users', encodedToken, userController.getAll);
 
 /**
  * @swagger

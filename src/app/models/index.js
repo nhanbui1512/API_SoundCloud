@@ -13,6 +13,7 @@ const Genre = require('./genreModel');
 const FollowUser = require('./followUser');
 const FollowPlaylist = require('./followPlaylist');
 const SongPlaylist = require('./SongPlaylistModel');
+const Comment = require('./commentModel');
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ const FollowUserModel = FollowUser(sequelize);
 const FollowPlaylistModel = FollowPlaylist(sequelize);
 const SongPlaylistModel = SongPlaylist(sequelize);
 const RoleModel = Role(sequelize);
+const CommentModel = Comment(sequelize);
 
 // relationship
 
@@ -79,6 +81,18 @@ GenreModel.hasMany(SongModel, { onDelete: 'CASCADE' });
 UserModel.hasMany(PlayListModel, { onDelete: 'CASCADE' }); // USER - PLAYLIST
 PlayListModel.belongsTo(UserModel, { onDelete: 'CASCADE' });
 
+// Quan hệ giữa Song và Comment
+SongModel.hasMany(CommentModel, { foreignKey: 'songId', onDelete: 'CASCADE' });
+CommentModel.belongsTo(SongModel, { foreignKey: 'songId', onDelete: 'CASCADE' });
+
+// Quan hệ giữa Song và Comment
+UserModel.hasMany(CommentModel, { foreignKey: 'userId', onDelete: 'CASCADE' });
+CommentModel.belongsTo(UserModel, { foreignKey: 'userId', onDelete: 'CASCADE' });
+
+// Quan hệ self-referential của Comment
+CommentModel.hasMany(CommentModel, { as: 'Replies', foreignKey: 'parentId' });
+CommentModel.belongsTo(CommentModel, { as: 'Parent', foreignKey: 'parentId' });
+
 module.exports = {
   sequelize,
   UserModel: sequelize.models.users,
@@ -90,4 +104,5 @@ module.exports = {
   FollowPlaylistModel: sequelize.models.follow_playlists,
   UserLikeSongModel: sequelize.models.userlikesongs,
   RoleModel: sequelize.models.roles,
+  CommentModel: sequelize.models.comments,
 };
