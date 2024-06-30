@@ -95,8 +95,9 @@ UserModel.hasMany(CommentModel, { foreignKey: 'userId', onDelete: 'CASCADE' });
 CommentModel.belongsTo(UserModel, { foreignKey: 'userId', onDelete: 'CASCADE' });
 
 // Quan hệ self-referential của Comment
-CommentModel.hasMany(CommentModel, { as: 'Replies', foreignKey: 'parentId' });
-CommentModel.belongsTo(CommentModel, { as: 'Parent', foreignKey: 'parentId' });
+CommentModel.hasMany(CommentModel, { as: 'Replies', foreignKey: 'parentId', onDelete: 'CASCADE' });
+CommentModel.belongsTo(CommentModel, { as: 'Parent', foreignKey: 'parentId', onDelete: 'CASCADE' });
+
 NotiTypeModel.hasMany(NotificationModel, { onDelete: 'CASCADE' });
 NotificationModel.belongsTo(NotiTypeModel, { onDelete: 'CASCADE' });
 

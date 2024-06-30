@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize');
+const { formatTime } = require('../until/time');
 
 const Comment = (sequelize) => {
   return sequelize.define('comments', {
@@ -25,6 +26,14 @@ const Comment = (sequelize) => {
     },
     updateAt: {
       type: DataTypes.DATE,
+    },
+    createAtTimeFormat: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        const time = this.getDataValue('createAt');
+        const formatedTime = formatTime(time);
+        return `${formatedTime.hour}:${formatedTime.minute} ${formatedTime.day}/${formatedTime.month}/${formatedTime.year}`;
+      },
     },
   });
 };
