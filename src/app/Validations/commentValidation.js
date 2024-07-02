@@ -5,6 +5,7 @@ class Validation {
   get = async (req, response, next) => {
     const condition = Joi.object({
       song_id: Joi.number().integer().min(0).required(),
+      comment_id: Joi.number().integer().min(0),
       page: Joi.number().integer().min(1),
       per_page: Joi.number().integer().min(1).max(50),
     });

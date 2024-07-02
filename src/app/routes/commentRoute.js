@@ -40,6 +40,13 @@ const router = expresss.Router();
  *          default: 1
  *        required: false
  *        description: number of comments per one page
+ *      - in: query
+ *        name: comment_id
+ *        schema:
+ *          type: integer
+ *          default: 1
+ *        required: false
+ *        description: get replyed comments of comment
  *     requestBody:
  *       required: false
  *       content:
@@ -119,5 +126,38 @@ router.post('/', authMiddleware, validation.create, CommentController.createComm
  */
 
 router.delete('/', authMiddleware, validation.delete, CommentController.delete);
+
+/**
+ * @swagger
+
+ * /api/comments:
+ *   patch:
+ *     summary: Update a comment
+ *     tags: [Comment]
+ *     security:
+ *      - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               comment_id:
+ *                 type: integer
+ *                 description: "id of comment"
+ *               content:
+ *                 type: string
+ *                 description: "content of the comment"
+ *             required:
+ *               - comment_id
+ *               - content
+ *     responses:
+ *       '200':
+ *          description: Successful
+ *       '404':
+ *          description: Not Found Data
+ */
+router.patch('/', authMiddleware, CommentController.update);
 
 module.exports = router;

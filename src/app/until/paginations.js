@@ -11,6 +11,7 @@ const pagination = ({ page = 1, perPage, count }) => {
   const prevPage = hasPrevPage ? page - 1 : null;
   const nextPage = hasNextPage ? page + 1 : null;
 
+  if (perPage > totalDocs) perPage = totalDocs;
   return {
     totalDocs,
     perPage,

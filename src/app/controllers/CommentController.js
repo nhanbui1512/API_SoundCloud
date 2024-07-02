@@ -1,9 +1,11 @@
 const { StatusCodes } = require('http-status-codes');
 const { CommentModel, SongModel, UserModel } = require('../models');
 const NotFoundError = require('../errors/NotFoundError');
+const pagination = require('../until/paginations');
+const commentRepository = require('../Repositories/commentRepository');
 
-async function getCommentsBySongId(songId) {
-  const getComments = async (parentId = null) => {
+async function getCommentsBySongId(songId, perPage, offset) {
+  const getComments = async (parentId = null, limit, offset) => {
     const comments = await CommentModel.findAll({
       where: {
         songId: songId,
@@ -21,6 +23,8 @@ async function getCommentsBySongId(songId) {
           },
         },
       ],
+      limit: limit,
+      offset: offset,
     });
 
     for (const comment of comments) {
@@ -30,15 +34,39 @@ async function getCommentsBySongId(songId) {
     return comments;
   };
 
-  return await getComments();
+  return await getComments(null, perPage, offset);
 }
 
 class CommentController {
   async getComments(req, response) {
-    const { page, per_page, song_id } = req.query;
-    getCommentsBySongId(song_id)
+    const { song_id, comment_id } = req.query;
+
+    const page = Number(req.query.page) || 1;
+    const perPage = Number(req.query.per_page) || 10;
+    const offset = (page - 1) * perPage; // Tính OFFSET
+
+    // nếu lấy ra các comment con của 1 comment
+    if (comment_id) {
+      const { count, rows } = await commentRepository.getChilrenComments(
+        comment_id,
+        perPage,
+        offset,
+      );
+      const paginateData = pagination({ page, perPage, count });
+
+      return response.status(StatusCodes.OK).json({ ...paginateData, data: rows });
+    }
+
+    const countAll = await CommentModel.count({
+      where: {
+        songId: song_id,
+      },
+    });
+    // nếu muốn lấy ra tất cả comment từ bài hát bất kỳ
+    getCommentsBySongId(song_id, perPage, offset)
       .then((comments) => {
-        response.status(StatusCodes.OK).json({ data: comments });
+        const paginateData = pagination({ page, perPage, count: countAll });
+        response.status(StatusCodes.OK).json({ ...paginateData, data: comments });
       })
       .catch((err) => {
         throw err;
@@ -69,13 +97,19 @@ class CommentController {
 
   delete = async (req, response) => {
     const { comment_id } = req.query;
-    await CommentModel.destroy({
-      where: {
-        id: comment_id,
-        userId: req.userId,
-      },
-    });
+    const userId = req.userId;
+    const alterRows = await commentRepository.delete(comment_id, userId);
+    if (alterRows === 0) throw new NotFoundError({ message: 'Not found comment' });
     return response.status(200).json();
+  };
+
+  update = async (req, response) => {
+    const commentId = req.body.comment_id;
+    const content = req.body.content; // content of comment
+    const userId = req.userId;
+    const updatedComment = await commentRepository.update(commentId, userId, content);
+
+    return response.status(StatusCodes.OK).json({ data: updatedComment });
   };
 }
 module.exports = new CommentController();
