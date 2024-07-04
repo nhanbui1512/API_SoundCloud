@@ -78,7 +78,6 @@ class SongController {
           message: 'Create Song fail',
         });
       }
-
       if (duration < 60) {
         return response.status(400).json({ isSuccess: false, message: 'Audio file is too short' });
       }

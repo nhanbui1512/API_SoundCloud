@@ -34,7 +34,7 @@ const Song = (sequelize) => {
       get() {
         const filename = this.getDataValue('thumbNail');
         if (!filename) return filename;
-        if (filename.startsWith('http://res.cloudinary.com')) return filename;
+        if (filename.includes('res.cloudinary.com')) return filename;
         return `${process.env.domain}/uploads/images/${filename}`;
       },
     },
@@ -43,7 +43,7 @@ const Song = (sequelize) => {
       get() {
         const filename = this.getDataValue('linkFile');
         if (!filename) return filename;
-        if (filename.startsWith('http://res.cloudinary.com')) return filename;
+        if (filename.includes('res.cloudinary.com')) return filename;
         return `${process.env.domain}/uploads/audios/${filename}`;
       },
     },
