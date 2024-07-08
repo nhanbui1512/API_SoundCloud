@@ -124,7 +124,7 @@ class UserController {
   // GET  /user/get-profile
   async getMyProfile(req, response, next) {
     const userId = req.userId;
-    const user = await userRepository.findById(userId, null);
+    const user = await userRepository.findById(userId, userId);
     return response.status(200).json({ data: user });
   }
 

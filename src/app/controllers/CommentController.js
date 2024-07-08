@@ -3,6 +3,7 @@ const { CommentModel, SongModel, UserModel } = require('../models');
 const NotFoundError = require('../errors/NotFoundError');
 const pagination = require('../until/paginations');
 const commentRepository = require('../Repositories/commentRepository');
+const userRepository = require('../Repositories/userRepository');
 
 async function getCommentsBySongId(songId, perPage, offset) {
   const getComments = async (parentId = null, limit, offset) => {
@@ -25,6 +26,7 @@ async function getCommentsBySongId(songId, perPage, offset) {
       ],
       limit: limit,
       offset: offset,
+      order: [['createAt', 'DESC']],
     });
 
     for (const comment of comments) {
@@ -74,24 +76,33 @@ class CommentController {
   }
   async createComment(req, response) {
     const songId = Number(req.body.song_id);
-    const commentId = req.body.comment_id;
+    let commentId = req.body.comment_id;
     const content = req.body.content;
     const userId = req.userId;
+
+    let user = await userRepository.findById(userId);
+    delete user.songs;
 
     const song = await SongModel.findByPk(songId);
     // check song is existed ?
     if (song === null) throw new NotFoundError({ message: 'Not found song' });
 
     if (commentId) {
+      commentId = Number(commentId);
       const comment = await CommentModel.findByPk(commentId);
       if (comment === null) throw new NotFoundError({ message: 'Not found comment' });
     }
-    const newComment = await CommentModel.create({
+    let newComment = await CommentModel.create({
       parentId: commentId,
       content: content,
       userId: userId,
       songId: song.id,
     });
+    newComment = newComment.toJSON();
+
+    newComment.Replies = []; // comment mới sẽ không có replies
+    newComment.user = user;
+
     return response.status(StatusCodes.OK).json({ data: newComment });
   }
 

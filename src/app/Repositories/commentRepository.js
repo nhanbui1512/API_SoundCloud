@@ -23,6 +23,7 @@ class CommentRepository {
         ],
         limit: limit,
         offset: offset,
+        order: [['createAt', 'DESC']],
       });
 
       for (const comment of comments) {
@@ -49,6 +50,7 @@ class CommentRepository {
         },
         limit: perPage,
         offset: offset,
+        order: [['createAt', 'DESC']],
       });
 
       return { count, rows };
