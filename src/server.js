@@ -47,6 +47,6 @@ app.use(errorHandle);
 /// login with gg
 
 app.listen(PORT, () => {
-  console.log('app is listening on http://localhost:3000');
-  console.log('API documentation at : http://localhost:3000/docs');
+  console.log(`app is listening on http://localhost:${PORT}`);
+  console.log(`API documentation at : http://localhost:${PORT}/docs`);
 });

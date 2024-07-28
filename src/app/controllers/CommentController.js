@@ -93,14 +93,14 @@ class CommentController {
       if (comment === null) throw new NotFoundError({ message: 'Not found comment' });
     }
     let newComment = await CommentModel.create({
-      parentId: commentId,
+      parentId: commentId || null,
       content: content,
       userId: userId,
       songId: song.id,
     });
     newComment = newComment.toJSON();
 
-    newComment.Replies = []; // comment mới sẽ không có replies
+    newComment.Replies = []; // new comment don't has replies
     newComment.user = user;
 
     return response.status(StatusCodes.OK).json({ data: newComment });
