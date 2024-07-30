@@ -25,7 +25,8 @@ class LoginController {
 
       const token = token_require.GenerateAcessToken(user);
       const refreshToken = token_require.GenerateRefreshToken(user);
-
+      user.refreshToken = refreshToken;
+      await user.save();
       user = user.toJSON();
 
       delete user.refreshToken;
