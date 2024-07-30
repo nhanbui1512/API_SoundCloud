@@ -30,7 +30,7 @@ class AuthController {
       const newAccessToken = token_require.GenerateAcessToken(user);
       return response.status(200).json({ status: 'success', accessToken: newAccessToken });
     } catch (error) {
-      throw new AuthorizeError({ authorize: 'Accesstoken not validation' });
+      throw new AuthorizeError({ authorize: 'Refreshtoken not validation' });
     }
   }
 }
