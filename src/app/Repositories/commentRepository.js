@@ -90,5 +90,14 @@ class CommentRepository {
       throw error;
     }
   }
+
+  async findById(commentId) {
+    try {
+      const comment = await CommentModel.findByPk(commentId);
+      return comment;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 module.exports = new CommentRepository();
