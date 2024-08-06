@@ -62,7 +62,7 @@ const changePassValidation = async (req, response, next) => {
   });
 
   try {
-    condition.validateAsync(req.body, { abortEarly: false });
+    await condition.validateAsync(req.body, { abortEarly: false });
     return next();
   } catch (error) {
     return response.status(StatusCodes.UNPROCESSABLE_ENTITY).json({

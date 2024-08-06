@@ -123,12 +123,12 @@ router.put(
  *           schema:
  *             type: object
  *             properties:
- *               ownPassWord:
+ *               oldPassWord:
  *                 type: string
  *               newPassWord:
  *                 type: string
  *             required:
- *              - ownPassWord
+ *              - oldPassWord
  *              - newPassWord
  *     responses:
  *       '200':
