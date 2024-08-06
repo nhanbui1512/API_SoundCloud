@@ -1,3 +1,4 @@
+const { StatusCodes } = require('http-status-codes');
 const AuthorizeError = require('../errors/AuthorizeError');
 
 require('dotenv').config();
@@ -15,11 +16,17 @@ const authMiddleware = (req, response, next) => {
       req.userName = decode.userName;
       next();
     } catch (error) {
-      throw new AuthorizeError({ authorize: 'Must be Login' });
+      if (error.name === 'TokenExpiredError') {
+        throw new AuthorizeError({ message: 'Token expired' });
+      } else if (error.name === 'JsonWebTokenError') {
+        throw new AuthorizeError({ message: 'Invalid token' });
+      } else {
+        return response.status(500).json({ error: 'Internal server error', status: 500 });
+      }
     }
   } else {
     throw new AuthorizeError({
-      authorize: 'Must be Login',
+      authorize: 'No token provided',
     });
   }
 };

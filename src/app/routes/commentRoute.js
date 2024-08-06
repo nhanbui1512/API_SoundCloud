@@ -160,4 +160,32 @@ router.delete('/', authMiddleware, validation.delete, CommentController.delete);
  */
 router.patch('/', authMiddleware, CommentController.update);
 
+/**
+ * @swagger
+ * tags:
+ *   name: Comment
+ * /api/comments/{id}:
+ *   get:
+ *     summary: Get Comment by id
+ *     tags: [Comment]
+ *     parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: id comment
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *     responses:
+ *       '200':
+ *          description: Successful
+ *       '404':
+ *          description: Not Found Data
+ *
+ */
+router.get('/:id', validation.getById, CommentController.getById);
+
 module.exports = router;

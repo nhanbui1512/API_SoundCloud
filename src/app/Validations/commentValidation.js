@@ -42,5 +42,18 @@ class Validation {
       return res.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ errors: error.message });
     }
   };
+
+  getById = async (req, response, next) => {
+    const condition = Joi.object({
+      id: Joi.number().integer().min(1).required(),
+    });
+
+    try {
+      await condition.validateAsync(req.params);
+      next();
+    } catch (error) {
+      return response.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ errors: error.message });
+    }
+  };
 }
 module.exports = new Validation();

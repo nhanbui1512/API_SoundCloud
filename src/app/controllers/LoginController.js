@@ -24,7 +24,6 @@ class LoginController {
       if (!checkPassword) throw new AuthorizeError({ message: 'Email or password is wrong' });
 
       const token = token_require.GenerateAcessToken(user);
-
       user = user.toJSON();
 
       let refreshToken = user.refreshToken;

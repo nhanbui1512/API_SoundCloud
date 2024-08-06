@@ -122,5 +122,12 @@ class CommentController {
 
     return response.status(StatusCodes.OK).json({ data: updatedComment });
   };
+
+  getById = async (req, response) => {
+    const id = req.params.id;
+    const comment = await commentRepository.findById(id);
+    if (comment === null) throw new NotFoundError({ message: 'Not found comment' });
+    return response.status(StatusCodes.OK).json({ data: comment });
+  };
 }
 module.exports = new CommentController();
