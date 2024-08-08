@@ -13,10 +13,11 @@ const cloudinary = require('cloudinary').v2;
 
 const ValidationError = require('../errors/ValidationError');
 const NotfoundError = require('../errors/NotFoundError');
-const { multiSqlizeToJSON, SqlizeToJSON } = require('../until/sequelize');
+const { multiSqlizeToJSON } = require('../until/sequelize');
 const { shuffleArray } = require('../until/arrays');
-const { Op, Sequelize } = require('sequelize');
+const { Op } = require('sequelize');
 const { DeleteFile } = require('../until/manageFile');
+const songRepository = require('../Repositories/songRepository');
 const NotFoundError = require('../errors/NotFoundError');
 
 class SongController {
@@ -223,83 +224,8 @@ class SongController {
     if (!songId) throw ValidationError({ song_id: 'Must be attached' });
     const userId = req.userId || null;
 
-    var song = await SongModel.findByPk(songId, {
-      include: [
-        {
-          model: UserModel,
-          attributes: {
-            exclude: ['password'],
-          },
-        },
-        {
-          model: GenreModel,
-        },
-      ],
-    });
-
-    if (song === null) throw new NotFoundError({ song: 'Not found this song' });
-
-    song = SqlizeToJSON(song);
-    song.owner = song.user;
-    song.nameGenre = song.genre.name;
-    delete song.user;
-    delete song.genre;
-
-    const likesOfThisSong = await UserLikeSongModel.findAll({
-      where: {
-        songId: songId,
-      },
-    });
-
-    // lay ra playlists cua user
-    var playlists = await PlayListModel.findAll({
-      where: {
-        userId: song.ownerId,
-      },
-    });
-    playlists = multiSqlizeToJSON(playlists);
-
-    // lay ra so nguoi theo doi
-    var usersFollow = await FollowUserModel.findAll({
-      where: {
-        followed: song.ownerId,
-      },
-    });
-    usersFollow = multiSqlizeToJSON(usersFollow);
-
-    // kiem tra coi theo doi chu bai hat chua
-    song.owner.isFollowed = false;
-
-    usersFollow.map((userFollow) => {
-      if (song.ownerId === userFollow.followed && userId === userFollow.user_id) {
-        song.owner.isFollowed = true;
-      }
-    });
-
-    // nếu người dùng có gửi token lên (đã login)
-    if (userId) {
-      song.isLiked = false;
-      const isLiked = multiSqlizeToJSON(likesOfThisSong).find((item) => item.userId === userId);
-      if (isLiked) song.isLiked = true;
-    }
-
-    // nếu người dùng có gửi token lên (đã login)
-    if (userId !== null) {
-      const isLiked = multiSqlizeToJSON(likesOfThisSong).find((item) => item.userId === userId);
-      song.isLiked = isLiked ? true : false;
-
-      const isFollowed = await FollowUserModel.findOne({
-        where: {
-          followed: song.ownerId,
-          user_id: userId,
-        },
-      });
-      song.owner.isFollowed = isFollowed !== null ? true : false;
-      song.owner.followCount = usersFollow.length;
-    }
-    song.likeCount = likesOfThisSong.length;
-    song.playlistCount = playlists.length;
-
+    const song = await songRepository.getSongById(songId, userId);
+    if (song == null) throw new NotFoundError({ message: 'Not found song' });
     return response.status(200).json({ song: song });
   }
 
