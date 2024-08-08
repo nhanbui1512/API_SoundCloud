@@ -7,6 +7,8 @@ const { UserModel } = require('../models');
 const AuthorizeError = require('../errors/AuthorizeError');
 const NotFoundError = require('../errors/NotFoundError');
 
+// const mailService = require('../services/mailService');
+
 class AuthController {
   async refreshToken(req, response, next) {
     const refreshToken = req.body.refreshToken;

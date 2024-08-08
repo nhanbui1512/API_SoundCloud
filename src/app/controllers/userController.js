@@ -14,6 +14,8 @@ const { checkPass } = require('../until/checkPass');
 const { SqlizeToJSON, multiSqlizeToJSON } = require('../until/sequelize');
 const pagination = require('../until/paginations');
 const ConfligError = require('../errors/ConfligError');
+const token = require('../until/token');
+const ForbiddenError = require('../errors/ForbiddenError');
 
 class UserController {
   // POST    /user/register
@@ -91,8 +93,8 @@ class UserController {
   async changePassWord(req, response, next) {
     const userId = req.userId;
     const oldPass = req.body.oldPassword;
-    const newPass = req.body.newPassWord;
-
+    const newPass = req.body.newPassword;
+    const refreshToken = req.body.refreshToken;
     const user = await UserModel.findOne({
       where: {
         id: userId,
@@ -100,16 +102,24 @@ class UserController {
     });
 
     if (user === null) throw new NotFoundError({ message: 'Not found user' });
-    // kiểm tra mật khẩu cũ có đúng không
-    let isEqual = await bcrypt.compare(oldPass, user.password);
+
+    if (user.refreshToken !== refreshToken)
+      throw new ForbiddenError({ message: 'Refreshtoken is expired' });
+
+    let isEqual = await bcrypt.compare(oldPass, user.password); // check oldpassword
     if (!isEqual) throw new NotFoundError({ user: 'Old Password is wrong' });
 
     //kiểm tra chuẩn mật khẩu
     const checkpass = checkPass(newPass);
     if (!checkpass) throw new ValidationError({ newPassword: 'Not validaiton' });
 
+    // hash password
     const cryptPassword = await bcrypt.hash(newPass, 10);
     user.password = cryptPassword;
+
+    // generate new refreshToken
+    const newRefreshToken = token.GenerateRefreshToken(user);
+    user.refreshToken = newRefreshToken;
 
     var newUser = await user.save();
     newUser = newUser.toJSON();
