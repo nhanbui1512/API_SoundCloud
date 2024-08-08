@@ -3,7 +3,7 @@ const SongController = require('../controllers/SongController');
 const multer = require('multer');
 const authMiddleware = require('../middlewares/authMiddleware');
 const enCodedToken = require('../middlewares/encodedToken');
-const { createSongValidation } = require('../Validations/songValidation');
+const { createSongValidation, songsLikedValidation } = require('../Validations/songValidation');
 
 // cấu hình lưu trữ file và kiểm tra loại file gửi lên
 var storage = multer.diskStorage({
@@ -207,6 +207,14 @@ router.get('/recommend', enCodedToken, SongController.RecommendSongs);
  *     tags: [Song]
  *     security:
  *      - bearerAuth: []
+ *     parameters:
+ *      - in: query
+ *        name: user_id
+ *        schema:
+ *          type: integer
+ *          default: 1
+ *        required: false
+ *        description: value
  *     requestBody:
  *       required: false
  *       content:
@@ -218,7 +226,7 @@ router.get('/recommend', enCodedToken, SongController.RecommendSongs);
  *          description: Not Found Data
  */
 
-router.get('/liked', authMiddleware, SongController.getSongsLiked);
+router.get('/liked', authMiddleware, songsLikedValidation, SongController.getSongsLiked);
 
 /**
  * @swagger

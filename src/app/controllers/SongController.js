@@ -541,6 +541,20 @@ class SongController {
 
   async getSongsLiked(req, response) {
     const userId = req.userId;
+    const targetUserId = req.query.user_id;
+
+    if (targetUserId) {
+      const songs = await UserLikeSongModel.findAll({
+        where: {
+          userId: targetUserId,
+        },
+        include: {
+          model: SongModel,
+          as: 'songOfUserLike',
+        },
+      });
+      return response.json({ data: songs });
+    }
 
     var likes = await UserLikeSongModel.findAll({
         where: {

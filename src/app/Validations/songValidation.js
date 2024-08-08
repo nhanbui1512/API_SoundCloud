@@ -17,6 +17,19 @@ const createSongValidation = async (req, response, next) => {
   }
 };
 
+const songsLikedValidation = async (req, response, next) => {
+  try {
+    const condition = Joi.object({
+      user_id: Joi.number().integer().min(1),
+    });
+    await condition.validateAsync(req.query);
+    next();
+  } catch (error) {
+    return response.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ errors: error.message });
+  }
+};
+
 module.exports = {
   createSongValidation,
+  songsLikedValidation,
 };
