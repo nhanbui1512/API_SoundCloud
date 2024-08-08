@@ -137,7 +137,7 @@ class SongController {
             {
               model: UserModel,
               attributes: {
-                exclude: ['password'],
+                exclude: ['password', 'refreshToken'],
               },
             },
             {

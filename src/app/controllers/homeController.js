@@ -1,9 +1,15 @@
 const { SongModel } = require('../models');
+const songRepository = require('../Repositories/songRepository');
 
 class HomeController {
   async index(req, res) {
     try {
-      const song = await SongModel.findOne({});
+      // const song = await SongModel.findOne({});
+      const song = await songRepository.getSongs({
+        page: 1,
+        perPage: 20,
+        userId: 1,
+      });
       return res.status(200).json({
         message: 'Server is ready',
         status: 200,
