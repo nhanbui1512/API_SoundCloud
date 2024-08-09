@@ -1,10 +1,12 @@
 const { Op } = require('sequelize');
-const { SongModel, sequelize, UserModel, GenreModel } = require('../models');
+const { SongModel, sequelize, UserModel, GenreModel, UserLikeSongModel } = require('../models');
 const { multiSqlizeToJSON } = require('../until/sequelize');
+const NotFoundError = require('../errors/NotFoundError');
 
 class SongRepository {
   constructor() {}
 
+  //#region  getSongById
   async getSongById(songId, userId) {
     try {
       var song = await SongModel.findByPk(songId, {
@@ -62,6 +64,9 @@ class SongRepository {
       throw error;
     }
   }
+  //#endregion
+
+  //#region  get Songs
   async getSongs({ page = 1, perPage = 10, userId = null, search, sort }) {
     const offset = (page - 1) * perPage;
 
@@ -168,7 +173,6 @@ class SongRepository {
         default:
           break;
       }
-
       //#endregion
 
       return res;
@@ -176,5 +180,36 @@ class SongRepository {
       throw error;
     }
   }
+  //#endregion
+
+  //#region Like Song
+  async likeSong(songId, userId) {
+    try {
+      const user = await UserModel.findByPk(userId, {
+        attributes: {
+          exclude: ['refreshToken', 'password'],
+        },
+      });
+      if (user === null) throw new NotFoundError({ message: 'Not found user' });
+      const song = await SongModel.findByPk(songId);
+      if (song === null) throw new NotFoundError({ message: 'Not found song' });
+
+      const liked = await UserLikeSongModel.findOrCreate({
+        where: {
+          userId: userId,
+          songId: songId,
+        },
+      });
+
+      const result = liked[0].toJSON();
+
+      result.user = user;
+      result.song = song;
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+  //#endregion
 }
 module.exports = new SongRepository();

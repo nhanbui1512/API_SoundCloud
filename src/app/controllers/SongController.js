@@ -151,33 +151,9 @@ class SongController {
   //  POST    /song/like?song_id =1
   async LikeSong(req, response) {
     const userId = req.userId;
-    const songId = req.query.song_id;
-    if (!songId) throw new ValidationError({ song_id: 'song_id is not validation' });
+    const songId = Number(req.query.song_id);
 
-    const user = await UserModel.findByPk(userId, {
-      attributes: {
-        exclude: ['password'],
-      },
-    });
-    const song = await SongModel.findByPk(songId);
-
-    if (song === null)
-      throw new NotfoundError({
-        song: 'Not found song',
-      });
-
-    const liked = await UserLikeSongModel.findOrCreate({
-      where: {
-        userId: userId,
-        songId: songId,
-      },
-    });
-
-    const result = liked[0].toJSON();
-
-    result.user = user;
-    result.song = song;
-
+    var result = await songRepository.likeSong(songId, userId);
     return response.send({
       data: result,
     });

@@ -7,6 +7,7 @@ const {
   createSongValidation,
   songsLikedValidation,
   getSongsValidation,
+  likeSongValidation,
 } = require('../Validations/songValidation');
 
 // cấu hình lưu trữ file và kiểm tra loại file gửi lên
@@ -280,7 +281,7 @@ router.get('/liked', authMiddleware, songsLikedValidation, SongController.getSon
  *          description: Not Found Data
  */
 
-router.post('/like', authMiddleware, SongController.LikeSong);
+router.post('/like', likeSongValidation, authMiddleware, SongController.LikeSong);
 
 /**
  * @swagger
