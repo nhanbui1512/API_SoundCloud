@@ -233,5 +233,26 @@ class SongRepository {
     }
   }
   //#endregion
+
+  //#region update song
+  async update({ songId, description, name, thumbNail, artistName, duration, linkFile, genre }) {
+    try {
+      var song = await SongModel.findByPk(songId);
+      if (song === null) throw new NotFoundError({ message: 'Not found song' });
+
+      song.name = name || song.name;
+      song.thumbNail = thumbNail || song.thumbNail;
+      song.artistName = artistName || song.artistName;
+      song.duration = duration || song.duration;
+      song.linkFile = linkFile || song.linkFile;
+      song.description = description || song.description;
+      if (genre && genre instanceof GenreModel) song.genreId = genre.id;
+      await song.save();
+      return song;
+    } catch (error) {
+      throw error;
+    }
+  }
+  //#endregion
 }
 module.exports = new SongRepository();
