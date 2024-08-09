@@ -211,5 +211,27 @@ class SongRepository {
     }
   }
   //#endregion
+
+  //#region createSong
+  async createSong({ name, description, artistName, linkFile, thumbNail, duration, user, genre }) {
+    try {
+      const newSong = await SongModel.create({
+        name: name,
+        description: description,
+        artistName: artistName,
+        linkFile: linkFile,
+        thumbNail: thumbNail,
+        duration: duration,
+      });
+
+      if (user instanceof UserModel) await user.addSong(newSong);
+      if (genre instanceof GenreModel) await genre.addSong(newSong);
+
+      return newSong;
+    } catch (error) {
+      throw error;
+    }
+  }
+  //#endregion
 }
 module.exports = new SongRepository();

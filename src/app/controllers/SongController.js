@@ -53,24 +53,12 @@ class SongController {
     if (genre === null) throw new NotfoundError({ genere: 'Not found' });
 
     const user = await UserModel.findByPk(userid);
+    if (user === null) throw new NotfoundError({ message: 'Not found user' });
 
     const song = req.files.song[0];
     const thumbNail = req.files.thumbNail[0];
 
-    // console.log(song);
-    // console.log(thumbNail);
     //Tính toán số giây của file nhạc
-
-    const uploadOptions = {
-      transformation: {
-        width: 400, // Chiều rộng mới
-        height: 400, // Chiều cao mới
-        crop: 'fill', // Phương pháp cắt ảnh
-        format: 'jpg', // Định dạng mới
-      },
-      folder: 'images', // Thư mục trên Cloudinary để lưu ảnh
-      resource_type: 'auto',
-    };
 
     mp3Duration(song.path, async function (err, duration) {
       if (err) {
@@ -84,6 +72,16 @@ class SongController {
         return response.status(400).json({ isSuccess: false, message: 'Audio file is too short' });
       }
 
+      const uploadOptions = {
+        transformation: {
+          width: 400, // Chiều rộng mới
+          height: 400, // Chiều cao mới
+          crop: 'fill', // Phương pháp cắt ảnh
+          format: 'jpg', // Định dạng mới
+        },
+        folder: 'images', // Thư mục trên Cloudinary để lưu ảnh
+        resource_type: 'auto',
+      };
       const imageUploaded = await cloudinary.uploader.upload(thumbNail.path, uploadOptions);
 
       const songUploaded = await cloudinary.uploader.upload(song.path, {
@@ -92,17 +90,16 @@ class SongController {
       });
 
       try {
-        const newSong = await SongModel.create({
-          name: name,
-          description: description,
-          artistName: artistName,
+        const newSong = await songRepository.createSong({
+          name,
+          description,
+          artistName,
+          duration,
           linkFile: songUploaded.url,
           thumbNail: imageUploaded.url,
-          duration: duration,
+          user: user,
+          genre: genre,
         });
-
-        await user.addSong(newSong);
-        await genre.addSong(newSong);
 
         await DeleteFile(song.path);
         await DeleteFile(thumbNail.path);
