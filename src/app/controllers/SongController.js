@@ -116,106 +116,22 @@ class SongController {
   // GET  /song/get-songs?page=2&per_page=12
   async getSongs(req, response) {
     const userId = req.userId || null;
-
-    const currentPage = req.query.page || 1;
+    var page = req.query.page || 1;
     var itemsPerPage = req.query.per_page || 10; // Số bản ghi trên mỗi trang
     if (itemsPerPage > 100) itemsPerPage = 100;
 
-    const offset = (currentPage - 1) * itemsPerPage; // Tính OFFSET
+    const sort = req.query.sort;
+    const search = req.query.search;
 
-    const page = Number(req.query.page);
-    const perPage = Number(req.query.per_page);
-    const erros = [];
+    var songs = await songRepository.getSongs({
+      page,
+      userId,
+      sort,
+      search,
+      perPage: itemsPerPage,
+    });
 
-    if (!page) erros.push({ page: 'page not validation' });
-    if (!perPage) erros.push({ perPage: 'per_page not validation' });
-    if (erros.length > 0) throw new ValidationError(erros);
-
-    try {
-      var songs = await SongModel.findAll({
-          include: [
-            {
-              model: UserModel,
-              attributes: {
-                exclude: ['password', 'refreshToken'],
-              },
-            },
-            {
-              model: GenreModel,
-              attributes: {
-                exclude: ['createAt', 'updateAt'],
-              },
-            },
-          ],
-          attributes: {
-            exclude: ['genreId', 'ownerId'],
-          },
-          limit: Number(itemsPerPage),
-          offset: offset,
-          order: [['createAt', 'DESC']],
-        }),
-        songs = multiSqlizeToJSON(songs);
-
-      const ids = songs.map((song) => {
-        return song.id;
-      });
-
-      var ownerIds = songs.map((song) => song.user.id);
-      ownerIds = ownerIds.filter((item, index) => ownerIds.indexOf(item) === index);
-
-      var followed = []; // những người sở hữu bài hát mà được user follow
-      if (userId !== null) {
-        followed = await FollowUserModel.findAll({
-          where: {
-            followed: ownerIds,
-            user_id: userId,
-          },
-        });
-        followed = multiSqlizeToJSON(followed);
-      }
-
-      var likes = await UserLikeSongModel.findAll({
-        where: {
-          songId: ids,
-        },
-        include: {
-          model: UserModel,
-          as: 'user',
-        },
-      });
-
-      let result = songs.map((song) => {
-        if (userId === null) song.user.isFollowed = false;
-        else {
-          song.user.isFollowed = followed.find((follow) => follow.followed === song.user.id)
-            ? true
-            : false;
-        }
-        song.owner = song.user;
-        delete song.user;
-
-        var count = likes.reduce((likeCount, like) => {
-          if (like.songId == song.id) return likeCount + 1;
-          else return likeCount;
-        }, 0);
-
-        song.likeCount = count; // số like
-
-        // đã like hay chưa
-        song.isLiked = likes.find((like) => like.userId === userId && song.id === like.songId)
-          ? true
-          : false;
-
-        return song;
-      });
-      // Xáo trộn mảng
-      // result = shuffleArray(result);
-
-      return response.status(200).json({ data: result });
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
+    return response.status(200).json({ data: songs });
   }
 
   // GET     /song/getsong?song_id=12

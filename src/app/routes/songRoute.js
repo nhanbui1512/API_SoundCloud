@@ -3,7 +3,11 @@ const SongController = require('../controllers/SongController');
 const multer = require('multer');
 const authMiddleware = require('../middlewares/authMiddleware');
 const enCodedToken = require('../middlewares/encodedToken');
-const { createSongValidation, songsLikedValidation } = require('../Validations/songValidation');
+const {
+  createSongValidation,
+  songsLikedValidation,
+  getSongsValidation,
+} = require('../Validations/songValidation');
 
 // cấu hình lưu trữ file và kiểm tra loại file gửi lên
 var storage = multer.diskStorage({
@@ -120,7 +124,7 @@ router.post(
  *
  */
 
-router.get('/get-songs', enCodedToken, SongController.getSongs);
+router.get('/get-songs', getSongsValidation, enCodedToken, SongController.getSongs);
 
 /**
  * @swagger

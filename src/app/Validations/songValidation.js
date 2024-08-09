@@ -29,7 +29,23 @@ const songsLikedValidation = async (req, response, next) => {
   }
 };
 
+const getSongsValidation = async (req, response, next) => {
+  const condition = Joi.object({
+    page: Joi.number().integer().min(1),
+    per_page: Joi.number().integer().min(1).max(100),
+    sort: Joi.string().min(3).max(20).trim(),
+    search: Joi.string().min(1).max(100),
+  });
+  try {
+    await condition.validateAsync(req.query, { abortEarly: false });
+    next();
+  } catch (error) {
+    return response.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ errors: error.message });
+  }
+};
+
 module.exports = {
   createSongValidation,
   songsLikedValidation,
+  getSongsValidation,
 };

@@ -65,27 +65,7 @@ class SongRepository {
   async getSongs({ page = 1, perPage = 10, userId = null, search, sort }) {
     const offset = (page - 1) * perPage;
 
-    //#region sorting
-    var sorting = [];
-    switch (sort) {
-      case 'create_asc':
-        sorting.push(['createAt', 'ASC']);
-        break;
-      case 'create_desc':
-        sorting.push(['createAt', 'DESC']);
-        break;
-      case 'name_asc':
-        sorting.push(['name', 'ASC']);
-        break;
-      case 'name_desc':
-        sorting.push(['name', 'DESC']);
-        break;
-      default:
-        break;
-    }
-
-    //#endregion
-
+    //#region  search
     var condition = {};
     if (search)
       condition = {
@@ -103,7 +83,7 @@ class SongRepository {
           },
         ],
       };
-    //#region  search
+    //#endregion
 
     try {
       var res = await SongModel.findAll({
@@ -146,7 +126,7 @@ class SongRepository {
         },
         limit: Number(perPage),
         offset: offset,
-        order: sorting,
+        order: [['id', 'DESC']],
       });
 
       res = multiSqlizeToJSON(res);
@@ -157,6 +137,39 @@ class SongRepository {
 
         delete element.user;
       });
+
+      //#region sorting
+
+      switch (sort) {
+        case 'create_asc':
+          res.sort((a, b) => new Date(b.createAt) - new Date(a.createAt));
+          break;
+        case 'create_desc':
+          res.sort((a, b) => new Date(a.createAt) - new Date(b.createAt));
+          break;
+        case 'name_asc':
+          res.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+        case 'name_desc':
+          res.sort((a, b) => b.name.localeCompare(a.name));
+          break;
+        case 'listen_asc':
+          res.sort((a, b) => a.numberOfListen - b.numberOfListen);
+          break;
+        case 'listen_desc':
+          res.sort((a, b) => b.numberOfListen - a.numberOfListen);
+          break;
+        case 'loop_asc':
+          res.sort((a, b) => a.numberOfLoop - b.numberOfLoop);
+          break;
+        case 'loop_desc':
+          res.sort((a, b) => b.numberOfLoop - a.numberOfLoop);
+          break;
+        default:
+          break;
+      }
+
+      //#endregion
 
       return res;
     } catch (error) {

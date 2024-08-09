@@ -9,7 +9,8 @@ class HomeController {
         page: 1,
         perPage: 10,
         userId: 1,
-        sort: 'create_asc',
+        sort: 'listen_asc',
+        search: 'Đừng làm trái tim anh đau',
       });
       return res.status(200).json({
         message: 'Server is ready',
