@@ -22,6 +22,7 @@ const NotFoundError = require('../errors/NotFoundError');
 
 class SongController {
   // Tạo nhạc
+  //#region  create song
   async createSong(req, response) {
     const name = req.body.name;
     const description = req.body.description;
@@ -112,8 +113,10 @@ class SongController {
       }
     });
   }
+  //#endregion
 
   // GET  /song/get-songs?page=2&per_page=12
+  //#region  get songs
   async getSongs(req, response) {
     const userId = req.userId || null;
     var page = req.query.page || 1;
@@ -136,8 +139,10 @@ class SongController {
 
     return response.status(200).json({ data: songs });
   }
+  //#endregion
 
   // GET     /song/getsong?song_id=12
+  //#region get song by id
   async getSongById(req, response) {
     const songId = req.query.song_id;
     if (!songId) throw ValidationError({ song_id: 'Must be attached' });
@@ -147,8 +152,10 @@ class SongController {
     if (song == null) throw new NotFoundError({ message: 'Not found song' });
     return response.status(200).json({ song: song });
   }
+  //#endregion
 
   //  POST    /song/like?song_id =1
+  //#region like song
   async LikeSong(req, response) {
     const userId = req.userId;
     const songId = Number(req.query.song_id);
@@ -158,7 +165,9 @@ class SongController {
       data: result,
     });
   }
+  //#endregion
 
+  //#region unlike song
   async UnlikeSong(req, response) {
     const userId = req.userId;
     const songId = req.query.song_id;
@@ -176,8 +185,10 @@ class SongController {
       message: 'Unlike the song successfully',
     });
   }
+  //#endregion
 
   // DELETE /song
+  //#region delete song
   async deleteSong(req, response) {
     const songId = Number(req.query.song_id);
     const userId = req.userId;
@@ -199,9 +210,10 @@ class SongController {
       message: 'Delete song successfully',
     });
   }
+  //#endregion
 
   // GET /song/search?value=tenbaihat
-
+  //#region search song
   async SearchSong(req, response) {
     const value = req.query.value;
     if (!value || value.trim() === '') throw new ValidationError({ value: 'Not validation' });
@@ -285,8 +297,10 @@ class SongController {
 
     return response.status(200).json({ songs, playlists });
   }
+  //#endregion
 
   // Recomend những bài hát chưa được Like (req,response)
+  //#region recommend songs
   async RecommendSongs(req, response) {
     const userId = req.userId;
 
@@ -359,7 +373,9 @@ class SongController {
 
     return response.status(200).json({ data: songs });
   }
+  //#endregion
 
+  //#region get liked songs
   async getSongsLiked(req, response) {
     const userId = req.userId;
     const targetUserId = req.query.user_id;
@@ -431,6 +447,7 @@ class SongController {
 
     return response.status(200).json({ data: likes });
   }
+  //#endregion
 }
 
 module.exports = new SongController();

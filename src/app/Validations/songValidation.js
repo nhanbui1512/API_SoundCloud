@@ -1,6 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 const Joi = require('joi');
 
+//#region createSong
 const createSongValidation = async (req, response, next) => {
   try {
     const condition = Joi.object({
@@ -16,7 +17,9 @@ const createSongValidation = async (req, response, next) => {
     return response.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ errors: error.message });
   }
 };
+//#endregion
 
+//#region song liked
 const songsLikedValidation = async (req, response, next) => {
   try {
     const condition = Joi.object({
@@ -28,7 +31,9 @@ const songsLikedValidation = async (req, response, next) => {
     return response.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ errors: error.message });
   }
 };
+//#endregion
 
+//#region get songs
 const getSongsValidation = async (req, response, next) => {
   const condition = Joi.object({
     page: Joi.number().integer().min(1),
@@ -44,7 +49,9 @@ const getSongsValidation = async (req, response, next) => {
     return response.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ errors: error.message });
   }
 };
+//#endregion
 
+//#region  like song
 const likeSongValidation = async (req, response, next) => {
   const condition = Joi.object({
     song_id: Joi.number().integer().min(1).required(),
@@ -56,6 +63,7 @@ const likeSongValidation = async (req, response, next) => {
     return response.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ errors: error.message });
   }
 };
+//#endregion
 
 module.exports = {
   createSongValidation,

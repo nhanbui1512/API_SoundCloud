@@ -19,6 +19,7 @@ const ForbiddenError = require('../errors/ForbiddenError');
 
 class UserController {
   // POST    /user/register
+  //#region create user
   async registerUser(req, response, next) {
     const data = {
       userName: req.body.userName,
@@ -51,8 +52,10 @@ class UserController {
       newUser,
     });
   }
+  //#endregion
 
   // PUT  /user/update
+  //#region update user
   async updateUser(req, response, next) {
     const file = req.file;
     if (file && file.mimetype.includes('image') === false)
@@ -88,8 +91,10 @@ class UserController {
 
     return response.status(200).json({ isSuccess: true, data: newData });
   }
+  //#endregion
 
   // PUT  /user/change-password
+  //#region change password
   async changePassWord(req, response, next) {
     const userId = req.userId;
     const oldPass = req.body.oldPassword;
@@ -130,15 +135,19 @@ class UserController {
       data: { newUser },
     });
   }
+  //#endregion
 
   // GET  /user/get-profile
+  //#region get my profile
   async getMyProfile(req, response, next) {
     const userId = req.userId;
     const user = await userRepository.findById(userId, userId);
     return response.status(200).json({ data: user });
   }
+  //#endregion
 
   // GET  /user?user_id=2
+  //#region find user
   async findUser(req, response, next) {
     const userIdFind = Number(req.query.user_id);
     const userId = req.userId || null;
@@ -149,8 +158,10 @@ class UserController {
 
     return response.status(200).json({ data: user });
   }
+  //#endregion
 
   // GET   /user/search?value=timkiemuser
+  //#region search user
   async searchUser(req, response) {
     const userId = req.userId || null;
 
@@ -198,7 +209,9 @@ class UserController {
 
     return response.status(200).json({ data: users });
   }
+  //#endregion
 
+  //#region get top songs
   async getTopSong(req, response) {
     const userId = req.userId;
 
@@ -244,6 +257,9 @@ class UserController {
 
     return response.status(200).json({ data: topUsersWithSongs });
   }
+  //#endregion
+
+  //#region get all
   async getAll(req, response) {
     const userId = req.userId;
 
@@ -255,12 +271,15 @@ class UserController {
 
     return response.status(StatusCodes.OK).json({ ...pageData, data: rows });
   }
+  //#endregion
 
+  //#region delete user
   async deleteUser(req, response) {
     const { id } = req.params;
     var alterRows = await userRepository.deleteById(id);
     return response.status(200).json({ alterRows });
   }
+  //#endregion
 }
 
 module.exports = new UserController();
