@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const { SongModel, sequelize, UserModel, GenreModel } = require('../models');
 const { multiSqlizeToJSON } = require('../until/sequelize');
 
@@ -64,8 +65,49 @@ class SongRepository {
   async getSongs({ page = 1, perPage = 10, userId = null, search, sort }) {
     const offset = (page - 1) * perPage;
 
+    //#region sorting
+    var sorting = [];
+    switch (sort) {
+      case 'create_asc':
+        sorting.push(['createAt', 'ASC']);
+        break;
+      case 'create_desc':
+        sorting.push(['createAt', 'DESC']);
+        break;
+      case 'name_asc':
+        sorting.push(['name', 'ASC']);
+        break;
+      case 'name_desc':
+        sorting.push(['name', 'DESC']);
+        break;
+      default:
+        break;
+    }
+
+    //#endregion
+
+    var condition = {};
+    if (search)
+      condition = {
+        [Op.or]: [
+          { name: { [Op.like]: `%${search}%` } },
+          {
+            artistName: {
+              [Op.like]: `%${search}%`,
+            },
+          },
+          {
+            description: {
+              [Op.like]: `%${search}%`,
+            },
+          },
+        ],
+      };
+    //#region  search
+
     try {
       var res = await SongModel.findAll({
+        where: condition,
         include: [
           {
             model: UserModel,
@@ -104,7 +146,7 @@ class SongRepository {
         },
         limit: Number(perPage),
         offset: offset,
-        order: [['createAt', 'DESC']],
+        order: sorting,
       });
 
       res = multiSqlizeToJSON(res);
@@ -115,6 +157,7 @@ class SongRepository {
 
         delete element.user;
       });
+
       return res;
     } catch (error) {
       throw error;

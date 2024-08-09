@@ -209,7 +209,7 @@ class SongController {
         return song;
       });
       // Xáo trộn mảng
-      result = shuffleArray(result);
+      // result = shuffleArray(result);
 
       return response.status(200).json({ data: result });
     } catch (error) {

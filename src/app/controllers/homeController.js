@@ -7,8 +7,9 @@ class HomeController {
       // const song = await SongModel.findOne({});
       const song = await songRepository.getSongs({
         page: 1,
-        perPage: 20,
+        perPage: 10,
         userId: 1,
+        sort: 'create_asc',
       });
       return res.status(200).json({
         message: 'Server is ready',
