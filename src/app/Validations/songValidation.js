@@ -35,6 +35,7 @@ const getSongsValidation = async (req, response, next) => {
     per_page: Joi.number().integer().min(1).max(100),
     sort: Joi.string().min(3).max(20).trim(),
     search: Joi.string().min(1).max(100),
+    suffle: Joi.boolean(),
   });
   try {
     await condition.validateAsync(req.query, { abortEarly: false });

@@ -103,15 +103,35 @@ router.post(
  *        schema:
  *          type: integer
  *          default: 1
- *        required: true
+ *        required: false
  *        description: page of songs
  *      - in: query
  *        name: per_page
  *        schema:
  *          type: integer
- *          default: 15
- *        required: true
+ *          default: 10
+ *        required: false
  *        description: number per page
+ *      - in: query
+ *        name: sort
+ *        schema:
+ *          type: string
+ *          default: create_asc
+ *        required: false
+ *        description: 'type sorting : create_asc, create_desc, name_asc, name_desc, listen_asc, listen_desc, loop_asc, loop_desc'
+ *      - in: query
+ *        name: search
+ *        schema:
+ *          type: string
+ *        required: false
+ *        description: 'search song'
+ *      - in: query
+ *        name: suffle
+ *        schema:
+ *          type: boolean
+ *          default: false
+ *        required: false
+ *        description: 'is suffle list music'
  *     requestBody:
  *       required: false
  *       content:

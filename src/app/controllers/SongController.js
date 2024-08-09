@@ -130,6 +130,9 @@ class SongController {
       search,
       perPage: itemsPerPage,
     });
+    if (req.query.suffle?.toLowerCase() === 'true') {
+      songs = shuffleArray(songs);
+    }
 
     return response.status(200).json({ data: songs });
   }
