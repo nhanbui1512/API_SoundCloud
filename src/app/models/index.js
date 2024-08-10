@@ -51,6 +51,20 @@ UserLikeSongModel.belongsTo(SongModel, {
 });
 UserLikeSongModel.belongsTo(UserModel, { as: 'user', foreignKey: 'userId', onDelete: 'CASCADE' });
 
+UserModel.belongsToMany(SongModel, {
+  through: UserLikeSongModel,
+  as: 'user', // chỗ này phải đặt là songs nhưng do có data nên không thể sửa
+  foreignKey: 'userId',
+  onDelete: 'CASCADE',
+});
+
+SongModel.belongsToMany(UserModel, {
+  through: UserLikeSongModel,
+  as: 'songOfUserLike',
+  foreignKey: 'songId',
+  onDelete: 'CASCADE',
+});
+
 FollowUserModel.belongsTo(UserModel, {
   as: 'follower',
   foreignKey: 'user_id',

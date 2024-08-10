@@ -252,7 +252,7 @@ router.get('/recommend', enCodedToken, SongController.RecommendSongs);
  *          description: Not Found Data
  */
 
-router.get('/liked', authMiddleware, songsLikedValidation, SongController.getSongsLiked);
+router.get('/liked', enCodedToken, songsLikedValidation, SongController.getSongsLiked);
 
 /**
  * @swagger

@@ -270,5 +270,51 @@ class SongRepository {
     }
   }
   //#endregion
+
+  //#region get liked song
+  async getLikedSongs({ targetUserId, userId = null, page = 1, perPage = 10 }) {
+    const offset = (page - 1) * perPage;
+
+    try {
+      const user = await UserModel.findByPk(targetUserId, {
+        include: {
+          model: SongModel,
+          as: 'user',
+          attributes: {
+            include: [
+              [
+                sequelize.literal(
+                  // user.id có nghĩa là song.id do alias bị sai tên
+                  `(SELECT CASE WHEN EXISTS (SELECT 1 FROM userlikesongs WHERE userId = ${userId} AND songId = user.id) THEN TRUE ELSE FALSE END AS result)`,
+                ),
+                'isLiked',
+              ],
+              [
+                sequelize.literal(`(SELECT COUNT (*) FROM userlikesongs WHERE songId = user.id )`),
+                'likeCount',
+              ],
+            ],
+          },
+        },
+        offset: offset,
+        limit: perPage,
+      });
+
+      if (user === null) throw new NotFoundError({ message: 'Not found user' });
+
+      var songs = multiSqlizeToJSON(user.user);
+      songs = songs.map((song) => {
+        song.isLiked = song.isLiked === 1 ? true : false;
+        var element = { ...song.userlikesongs };
+        delete song.userlikesongs;
+        element.songOfUserLike = { ...song };
+        return element;
+      });
+      return songs;
+    } catch (error) {
+      throw error;
+    }
+  }
+  //#endregion
 }
 module.exports = new SongRepository();

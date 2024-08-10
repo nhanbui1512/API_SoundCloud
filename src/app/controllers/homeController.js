@@ -5,24 +5,16 @@ class HomeController {
   async index(req, res) {
     try {
       // const song = await SongModel.findOne({});
-      const song = await songRepository.getSongs({
-        page: 1,
-        perPage: 10,
+      const song = await songRepository.getLikedSongs({
+        targetUserId: 433,
         userId: 1,
-        sort: 'listen_asc',
-        search: 'Đừng làm trái tim anh đau',
+        page: 1,
+        perPage: 30,
       });
-      return res.status(200).json({
-        message: 'Server is ready',
-        status: 200,
-        testData: song,
-      });
+
+      return res.json(song);
     } catch (error) {
-      return res.status(500).json({
-        status: 500,
-        message: 'Internal Error',
-        testData: {},
-      });
+      throw error;
     }
   }
 }

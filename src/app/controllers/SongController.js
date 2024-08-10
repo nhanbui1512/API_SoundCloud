@@ -5,8 +5,6 @@ const {
   UserLikeSongModel,
   FollowUserModel,
   GenreModel,
-  PlayListModel,
-  SongPlaylistModel,
 } = require('../models');
 
 const cloudinary = require('cloudinary').v2;
@@ -309,75 +307,22 @@ class SongController {
 
   //#region get liked songs
   async getSongsLiked(req, response) {
-    const userId = req.userId;
-    const targetUserId = req.query.user_id;
+    const page = req.query.page || 1;
+    const perPage = req.query.per_page || 15;
 
-    if (targetUserId) {
-      const songs = await UserLikeSongModel.findAll({
-        where: {
-          userId: targetUserId,
-        },
-        include: {
-          model: SongModel,
-          as: 'songOfUserLike',
-        },
-      });
-      return response.json({ data: songs });
-    }
+    const userId = req.userId || null;
+    var targetUserId = req.query.user_id || userId;
 
-    var likes = await UserLikeSongModel.findAll({
-        where: {
-          userId: userId,
-        },
-        include: {
-          model: SongModel,
-          as: 'songOfUserLike',
-          include: {
-            model: UserModel,
-            attributes: {
-              exclude: ['password'],
-            },
-          },
-        },
-        order: [['createAt', 'DESC']],
-      }),
-      likes = multiSqlizeToJSON(likes);
-
-    var ownerIds = likes.map((like) => like.songOfUserLike.ownerId);
-    ownerIds = ownerIds.filter((item, index) => ownerIds.indexOf(item) === index);
-
-    var userfollows = await FollowUserModel.findAll({
-        where: {
-          followed: ownerIds,
-        },
-      }),
-      userfollows = multiSqlizeToJSON(userfollows);
-
-    const songIds = likes.map((like) => like.songId);
-    var userLikedSongs = await UserLikeSongModel.findAll({
-        where: {
-          songId: songIds,
-        },
-      }),
-      userLikedSongs = multiSqlizeToJSON(userLikedSongs);
-
-    likes = likes.map((song) => {
-      song.songOfUserLike.owner = song.songOfUserLike.user;
-      delete song.songOfUserLike.user;
-
-      song.song = song.songOfUserLike;
-      delete song.songOfUserLike;
-
-      song.song.likeCount = userLikedSongs.filter((like) => like.songId === song.songId).length;
-      song.song.isLiked = true;
-
-      song.song.owner.followerCount = userfollows.filter(
-        (follow) => follow.followed === song.song.ownerId,
-      ).length;
-      return song;
+    if (userId === null && targetUserId === null)
+      throw new ValidationError({ message: 'Must provide your accessToken or user_id' });
+    const songs = await songRepository.getLikedSongs({
+      targetUserId,
+      userId,
+      page,
+      perPage,
     });
 
-    return response.status(200).json({ data: likes });
+    return response.status(200).json({ data: songs });
   }
   //#endregion
 }
