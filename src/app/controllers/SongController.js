@@ -307,9 +307,12 @@ class SongController {
 
   //#region get liked songs
   async getSongsLiked(req, response) {
-    const page = req.query.page || 1;
-    const perPage = req.query.per_page || 15;
+    var page = req.query.page || 1;
+    var perPage = req.query.per_page || 15;
     const userId = req.userId || null;
+    page = Number(page);
+    perPage = Number(perPage);
+
     var targetUserId = req.query.user_id || userId;
 
     if (userId === null && targetUserId === null)

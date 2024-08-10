@@ -7,4 +7,13 @@ function removeDuplicates(arr) {
   return [...new Set(arr)];
 }
 
-module.exports = { shuffleArray, removeDuplicates };
+function paginateArray(array, page, limit) {
+  // Tính toán vị trí bắt đầu (offset) và kết thúc
+  const offset = (page - 1) * limit;
+  const paginatedItems = array.slice(offset, offset + limit);
+
+  // Trả về mảng đã phân trang
+  return paginatedItems;
+}
+
+module.exports = { shuffleArray, removeDuplicates, paginateArray };

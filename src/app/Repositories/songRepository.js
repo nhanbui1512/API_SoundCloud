@@ -2,6 +2,7 @@ const { Op } = require('sequelize');
 const { SongModel, sequelize, UserModel, GenreModel, UserLikeSongModel } = require('../models');
 const { multiSqlizeToJSON } = require('../until/sequelize');
 const NotFoundError = require('../errors/NotFoundError');
+const { paginateArray } = require('../until/arrays');
 
 class SongRepository {
   constructor() {}
@@ -302,8 +303,6 @@ class SongRepository {
             },
           },
         },
-        offset: offset,
-        limit: perPage,
       });
 
       if (user === null) throw new NotFoundError({ message: 'Not found user' });
@@ -318,6 +317,8 @@ class SongRepository {
         element.song = { ...song };
         return element;
       });
+
+      songs = paginateArray(songs, page, perPage);
       return songs;
     } catch (error) {
       throw error;

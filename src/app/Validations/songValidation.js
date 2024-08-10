@@ -24,6 +24,8 @@ const songsLikedValidation = async (req, response, next) => {
   try {
     const condition = Joi.object({
       user_id: Joi.number().integer().min(1),
+      page: Joi.number().integer().min(1),
+      per_page: Joi.number().integer().min(1).max(100),
     });
     await condition.validateAsync(req.query);
     next();
