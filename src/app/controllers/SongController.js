@@ -19,6 +19,7 @@ const { Op } = require('sequelize');
 const { DeleteFile } = require('../until/manageFile');
 const songRepository = require('../Repositories/songRepository');
 const NotFoundError = require('../errors/NotFoundError');
+const playlistRepository = require('../Repositories/playlistRepository');
 
 class SongController {
   // Tạo nhạc
@@ -207,84 +208,23 @@ class SongController {
   // GET /song/search?value=tenbaihat
   //#region search song
   async SearchSong(req, response) {
-    const value = req.query.value;
-    if (!value || value.trim() === '') throw new ValidationError({ value: 'Not validation' });
+    const value = req.query.search_value;
+    const userId = req.userId || null;
+    var page = req.query.page || 1;
+    var perPage = req.query.per_page || 10;
+    const sort = req.query.sort;
 
-    var songs = await SongModel.findAll({
-        where: {
-          name: { [Op.like]: `%${value}%` },
-        },
-        include: [
-          {
-            model: UserModel,
-            attributes: {
-              exclude: ['password'],
-            },
-          },
-          {
-            model: GenreModel,
-            attributes: {
-              exclude: ['updateAt', 'createAt'],
-            },
-          },
-        ],
-        attributes: {
-          exclude: ['genreId', 'ownerId'],
-        },
-        limit: 20,
-      }),
-      songs = multiSqlizeToJSON(songs);
+    page = Number(page);
+    perPage = Number(perPage);
 
-    songs = songs.map((song) => {
-      song.owner = song.user;
-      delete song.user;
-      return song;
-    });
+    const songs = await songRepository.getSongs({ page, perPage, userId, sort, search: value });
 
-    var playlists = await PlayListModel.findAll({
-        where: {
-          name: { [Op.like]: [`%${value}%`] },
-        },
-      }),
-      playlists = multiSqlizeToJSON(playlists);
-
-    const playlistIds = playlists.map((playlist) => playlist.id);
-
-    var songsOfPlaylist = await SongPlaylistModel.findAll({
-      where: {
-        playlistId: playlistIds,
-      },
-      include: {
-        model: SongModel,
-        as: 'song',
-        attributes: {
-          exclude: ['genreId', 'ownerId'],
-        },
-        include: {
-          model: GenreModel,
-          attributes: {
-            exclude: ['updateAt', 'createAt'],
-          },
-        },
-      },
-      limit: 20,
-    });
-
-    songsOfPlaylist = multiSqlizeToJSON(songsOfPlaylist);
-
-    songsOfPlaylist = songsOfPlaylist.map((song) => {
-      var playlistId = song.playlistId;
-      song = song.song;
-      song.playlistId = playlistId;
-      song.owner = song.user;
-      delete song.user;
-      return song;
-    });
-
-    playlists = playlists.map((playlist) => {
-      playlist.songs = songsOfPlaylist.filter((song) => song.playlistId === playlist.id);
-
-      return playlist;
+    var playlists = await playlistRepository.getPlaylists({
+      page,
+      perPage,
+      userId,
+      sort,
+      search: value,
     });
 
     return response.status(200).json({ songs, playlists });

@@ -73,12 +73,22 @@ FollowPlaylistModel.belongsTo(PlayListModel, {
   onDelete: 'CASCADE',
 });
 
-SongPlaylistModel.belongsTo(PlayListModel, {
-  as: 'playlist',
+// SongPlaylistModel.belongsTo(PlayListModel, {
+//   as: 'playlist',
+//   foreignKey: 'playlistId',
+//   onDelete: 'CASCADE',
+// });
+// SongPlaylistModel.belongsTo(SongModel, { as: 'song', foreignKey: 'songId', onDelete: 'CASCADE' });
+PlayListModel.belongsToMany(SongModel, {
+  through: SongPlaylistModel,
   foreignKey: 'playlistId',
-  onDelete: 'CASCADE',
+  as: 'songs',
 });
-SongPlaylistModel.belongsTo(SongModel, { as: 'song', foreignKey: 'songId', onDelete: 'CASCADE' });
+SongModel.belongsToMany(PlayListModel, {
+  through: SongPlaylistModel,
+  foreignKey: 'songId',
+  as: 'playlists',
+});
 
 SongModel.belongsTo(GenreModel, { onDelete: 'CASCADE' }); // SONG - GENRE
 GenreModel.hasMany(SongModel, { onDelete: 'CASCADE' });

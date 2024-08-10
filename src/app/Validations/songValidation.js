@@ -65,9 +65,27 @@ const likeSongValidation = async (req, response, next) => {
 };
 //#endregion
 
+//#region  search
+const searchValidation = async (req, response, next) => {
+  try {
+    const condition = Joi.object({
+      page: Joi.number().integer().min(1),
+      per_page: Joi.number().integer().min(5).max(100),
+      search_value: Joi.string().trim().required(),
+      sort: Joi.string().trim().max(100),
+    });
+    await condition.validateAsync(req.query, { abortEarly: false });
+    next();
+  } catch (error) {
+    return response.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ errors: error.message });
+  }
+};
+//#endregion
+
 module.exports = {
   createSongValidation,
   songsLikedValidation,
   getSongsValidation,
   likeSongValidation,
+  searchValidation,
 };

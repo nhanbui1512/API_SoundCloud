@@ -8,6 +8,7 @@ const {
   songsLikedValidation,
   getSongsValidation,
   likeSongValidation,
+  searchValidation,
 } = require('../Validations/songValidation');
 
 // cấu hình lưu trữ file và kiểm tra loại file gửi lên
@@ -201,7 +202,7 @@ router.get('/getsong', enCodedToken, SongController.getSongById);
  *       '404':
  *          description: Not Found Data
  */
-router.get('/search', SongController.SearchSong);
+router.get('/search', searchValidation, enCodedToken, SongController.SearchSong);
 
 /**
  * @swagger

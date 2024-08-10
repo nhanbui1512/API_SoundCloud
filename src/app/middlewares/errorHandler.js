@@ -1,3 +1,4 @@
+require('dotenv').config();
 function errorHandle(err, req, response, next) {
   const devEnvironment = Boolean(process.env.DEV) || false;
 
