@@ -309,12 +309,12 @@ class SongController {
   async getSongsLiked(req, response) {
     const page = req.query.page || 1;
     const perPage = req.query.per_page || 15;
-
     const userId = req.userId || null;
     var targetUserId = req.query.user_id || userId;
 
     if (userId === null && targetUserId === null)
       throw new ValidationError({ message: 'Must provide your accessToken or user_id' });
+
     const songs = await songRepository.getLikedSongs({
       targetUserId,
       userId,

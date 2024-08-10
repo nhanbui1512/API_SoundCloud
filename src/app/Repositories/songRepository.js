@@ -295,6 +295,12 @@ class SongRepository {
               ],
             ],
           },
+          include: {
+            model: UserModel,
+            attributes: {
+              exclude: ['password', 'refreshToken'],
+            },
+          },
         },
         offset: offset,
         limit: perPage,
@@ -304,10 +310,12 @@ class SongRepository {
 
       var songs = multiSqlizeToJSON(user.user);
       songs = songs.map((song) => {
+        song.owner = song.user;
+        delete song.user;
         song.isLiked = song.isLiked === 1 ? true : false;
         var element = { ...song.userlikesongs };
         delete song.userlikesongs;
-        element.songOfUserLike = { ...song };
+        element.song = { ...song };
         return element;
       });
       return songs;
