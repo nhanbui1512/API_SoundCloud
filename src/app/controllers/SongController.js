@@ -170,12 +170,7 @@ class SongController {
     const songId = req.query.song_id;
     if (!songId) throw new ValidationError({ song_id: 'song_id is not validation' });
 
-    await UserLikeSongModel.destroy({
-      where: {
-        userId: userId,
-        songId: songId,
-      },
-    });
+    await songRepository.unlikeSong(songId, userId);
 
     return response.status(200).json({
       isSuccess: true,

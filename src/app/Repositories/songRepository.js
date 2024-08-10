@@ -212,6 +212,22 @@ class SongRepository {
   }
   //#endregion
 
+  //#region Unlike song
+  async unlikeSong(songId, userId) {
+    try {
+      await UserLikeSongModel.destroy({
+        where: {
+          userId: userId,
+          songId: songId,
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  //#endregion
+
   //#region createSong
   async createSong({ name, description, artistName, linkFile, thumbNail, duration, user, genre }) {
     try {
