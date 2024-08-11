@@ -132,7 +132,7 @@ class SongRepository {
         },
         limit: Number(perPage),
         offset: offset,
-        order: [['id', 'DESC']],
+        order: [['createAt', 'DESC']],
       });
 
       res = multiSqlizeToJSON(res);

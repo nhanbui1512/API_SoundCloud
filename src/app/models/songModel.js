@@ -34,7 +34,7 @@ const Song = (sequelize) => {
       get() {
         const filename = this.getDataValue('thumbNail');
         if (!filename) return filename;
-        if (filename.includes('res.cloudinary.com')) return filename;
+        if (filename.includes('res.cloudinary.com') || filename.includes('sndcdn')) return filename;
         return `${process.env.domain}/uploads/images/${filename}`;
       },
     },
