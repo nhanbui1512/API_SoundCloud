@@ -13,6 +13,7 @@ const {
 
 const { createSongPlaylist } = require('../until/songPlaylist');
 const { multiSqlizeToJSON } = require('../until/sequelize');
+const playlistRepository = require('../Repositories/playlistRepository');
 
 class PlayListController {
   async createPlaylist(req, response) {
@@ -384,99 +385,21 @@ class PlayListController {
   async getPlaylistByUserId(req, response) {
     const queryId = Number(req.query.idUser);
     if (!queryId) throw new ValidationError({ idUser: 'Not validation' });
-    const userId = req.userId || -1;
+    const userId = req.userId || null;
 
     const user = await UserModel.findByPk(queryId, {
       attributes: {
         exclude: 'password',
       },
     });
-    if (user === null) throw new NotFoundError({ user: 'Not found' });
+    if (user === null) throw new NotFoundError({ message: 'Not found user' });
 
-    var playLists = await PlayListModel.findAll({
-        where: {
-          userId: queryId,
-        },
-        attributes: {
-          include: [
-            [
-              sequelize.literal(
-                `(SELECT CASE WHEN COUNT(*) > 0 THEN 'true' ELSE 'false' END AS result FROM follow_playlists  WHERE follow_playlists.userId = ${userId} AND follow_playlists.playlistId = playlists.id)`,
-              ),
-              'isFollowed',
-            ],
-            [
-              sequelize.literal(
-                `(SELECT  COUNT(*) FROM follow_playlists WHERE follow_playlists.playlistId = playlists.id)`,
-              ),
-              'countFollow',
-            ],
-          ],
-        },
-      }),
-      playLists = multiSqlizeToJSON(playLists);
-
-    const playlistIds = playLists.map((playlist) => playlist.id);
-
-    var songs = await SongPlaylistModel.findAll({
-        where: {
-          playlistId: playlistIds,
-        },
-        include: {
-          model: SongModel,
-          include: {
-            model: UserModel,
-            attributes: {
-              exclude: ['password'],
-            },
-          },
-          as: 'song',
-          attributes: {
-            include: [
-              [
-                sequelize.literal(
-                  '(SELECT COUNT(*) FROM userlikesongs WHERE userlikesongs.songId = song.id)',
-                ),
-                'likeCount',
-              ],
-              [
-                sequelize.literal(
-                  `(SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END AS result FROM userlikesongs  WHERE userlikesongs.userId = ${userId} AND userlikesongs.songId = song.id)`,
-                ),
-                'isLiked',
-              ],
-            ],
-          },
-        },
-      }),
-      songs = multiSqlizeToJSON(songs);
-
-    playLists.map((playlist) => {
-      playlist.songs = songs.filter((song) => song.playlistId === playlist.id);
-      return playlist;
-    });
-
-    playLists.map((playlist) => {
-      playlist.songs = playlist.songs.map((song) => {
-        delete song.id;
-        delete song.createAt;
-        delete song.updateAt;
-        delete song.playlistId;
-        delete song.songId;
-        song.song.owner = song.song.user;
-        delete song.song.user;
-        song.song.isLiked = Boolean(song.song.isLiked);
-        song = song.song;
-
-        return song;
-      });
-      return playlist;
-    });
+    const playlists = await playlistRepository.getPlaylistsOfUser(queryId, userId);
 
     return response.status(200).json({
       data: {
         user: user,
-        playlists: playLists,
+        playlists: playlists,
       },
     });
   }
