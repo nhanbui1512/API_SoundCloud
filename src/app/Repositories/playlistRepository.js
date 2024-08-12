@@ -6,6 +6,7 @@ const {
   sequelize,
   GenreModel,
   SongPlaylistModel,
+  FollowPlaylistModel,
 } = require('../models');
 const { multiSqlizeToJSON, SqlizeToJSON } = require('../until/sequelize');
 const NotFoundError = require('../errors/NotFoundError');
@@ -241,6 +242,80 @@ class PlaylistRepository {
     }
   }
   //#endregion
+
+  //#region get following playlists
+  async getFollowingPlaylists(targetUserId, userId = null) {
+    try {
+      const user = await UserModel.findByPk(targetUserId, {
+        include: {
+          model: PlayListModel,
+          as: 'followed_playlists',
+          include: {
+            model: SongModel,
+            as: 'songs',
+            attributes: {
+              include: [
+                [
+                  sequelize.literal(
+                    `(SELECT CASE WHEN (SELECT 1 FROM userlikesongs WHERE songId = \`followed_playlists->songs\`.id AND userId = ${userId}) THEN TRUE ELSE FALSE END AS result)`,
+                  ),
+                  'isLiked',
+                ],
+                [
+                  sequelize.literal(
+                    `(select count(*) from userlikesongs where songId = \`followed_playlists->songs\`.id)`,
+                  ),
+                  'likeCount',
+                ],
+              ],
+            },
+            include: {
+              model: UserModel,
+              attributes: {
+                include: [
+                  [
+                    sequelize.literal(
+                      `(select case when ( select 1 from follow_users where followed = \`followed_playlists->songs->user\`.id and user_id = ${userId} ) then true else false end as result)`,
+                    ),
+                    'isFollowed',
+                  ],
+                ],
+                exclude: ['password', 'refreshToken'],
+              },
+            },
+          },
+          attributes: {
+            include: [
+              [
+                sequelize.literal(
+                  `(SELECT CASE WHEN (SELECT 1 from follow_playlists WHERE userId = ${userId} AND playlistId = \`followed_playlists\`.id) THEN TRUE ELSE FALSE END AS result)`,
+                ),
+                'isFollowed',
+              ],
+            ],
+          },
+        },
+        attributes: {
+          exclude: ['password', 'refreshToken'],
+        },
+      });
+      const playlists = multiSqlizeToJSON(user.followed_playlists);
+      playlists.forEach((pl) => {
+        pl.isFollowed = pl.isFollowed === 1 ? true : false;
+        pl.songs.forEach((song) => {
+          song.isLiked = song.isLiked === 1 ? true : false;
+          song.owner = song.user;
+          song.owner.isFollowed = song.owner.isFollowed === 1 ? true : false;
+          delete song.user;
+          delete song.song_playlist;
+        });
+        delete pl.follow_playlists;
+      });
+      return playlists;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = new PlaylistRepository();

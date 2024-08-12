@@ -87,6 +87,17 @@ FollowPlaylistModel.belongsTo(PlayListModel, {
   onDelete: 'CASCADE',
 });
 
+UserModel.belongsToMany(PlayListModel, {
+  through: FollowPlaylistModel,
+  onDelete: 'CASCADE',
+  as: 'followed_playlists',
+});
+PlayListModel.belongsToMany(UserModel, {
+  through: FollowPlaylistModel,
+  onDelete: 'CASCADE',
+  as: 'users_following',
+});
+
 SongPlaylistModel.belongsTo(PlayListModel, {
   as: 'playlist',
   foreignKey: 'playlistId',

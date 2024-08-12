@@ -14,6 +14,7 @@ const {
 const { createSongPlaylist } = require('../until/songPlaylist');
 const { multiSqlizeToJSON } = require('../until/sequelize');
 const playlistRepository = require('../Repositories/playlistRepository');
+const { StatusCodes } = require('http-status-codes');
 
 class PlayListController {
   async createPlaylist(req, response) {
@@ -348,113 +349,8 @@ class PlayListController {
   // get follow-playlists
   async MyPlaylists(req, response) {
     const userId = req.userId;
-
-    if (userId) {
-      const playlistFollow = await FollowPlaylistModel.findAll({
-        where: {
-          userId: userId,
-        },
-        attributes: {
-          exclude: ['userId', 'id'],
-        },
-        include: [
-          {
-            model: PlayListModel,
-            as: 'followingPlaylist',
-          },
-        ],
-      });
-      var playlists = multiSqlizeToJSON(playlistFollow);
-
-      var playlistIds = playlists.map((playlist) => {
-        return playlist.followingPlaylist.id;
-      });
-
-      // Lấy ra các bài hát của playlist
-      var songs = await SongPlaylistModel.findAll({
-        where: {
-          playlistId: playlistIds,
-        },
-        attributes: {
-          exclude: ['songId'],
-        },
-        include: [
-          {
-            model: SongModel,
-            as: 'song',
-            attributes: {
-              include: [
-                [
-                  sequelize.literal(
-                    `(SELECT  COUNT(*) FROM userlikesongs WHERE userlikesongs.songId = song.id)`,
-                  ),
-                  'likeCount',
-                ],
-                [
-                  sequelize.literal(
-                    `(SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END AS result FROM userlikesongs  WHERE userlikesongs.userId = ${userId} AND userlikesongs.songId = song.id)`,
-                  ),
-                  'isLiked',
-                ],
-              ],
-            },
-            include: {
-              model: UserModel,
-              attributes: {
-                exclude: 'password',
-              },
-            },
-          },
-        ],
-      });
-
-      songs = multiSqlizeToJSON(songs);
-
-      songs = songs.map((song) => {
-        song.song.owner = song.song.user;
-        song.song.isLiked = Boolean(song.song.isLiked);
-        delete song.song.user;
-        return song;
-      });
-
-      const ownerids = songs.map((song) => song.song.owner.id);
-
-      var followed = await FollowUserModel.findAll({
-          where: {
-            followed: ownerids,
-            user_id: userId,
-          },
-        }),
-        followed = multiSqlizeToJSON(followed);
-
-      songs = songs.map((song) => {
-        song.song.owner.isFollowed = followed.find(
-          (follow) => follow.user_id === userId && follow.followed === song.song.owner.id,
-        )
-          ? true
-          : false;
-        return song;
-      });
-
-      playlists = playlists.map((playlist) => {
-        // add songs
-        playlist.followingPlaylist.songs = [];
-        playlist.followingPlaylist.isFollow = true;
-        songs.map((song) => {
-          if (playlist.followingPlaylist.id === song.playlistId) {
-            playlist.followingPlaylist.songs.push(song.song);
-          }
-        });
-        return playlist.followingPlaylist;
-      });
-
-      return response.status(200).json({
-        result: true,
-        data: playlists,
-      });
-    } else {
-      throw new ValidationError({ message: 'User not found' });
-    }
+    const data = await playlistRepository.getFollowingPlaylists(userId, userId);
+    return response.status(StatusCodes.OK).json({ data });
   }
 
   async getUserFollowPlaylist(req, response) {
