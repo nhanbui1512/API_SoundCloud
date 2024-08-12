@@ -11,6 +11,7 @@ const { multiSqlizeToJSON, SqlizeToJSON } = require('../until/sequelize');
 const NotFoundError = require('../errors/NotFoundError');
 class PlaylistRepository {
   constructor() {}
+  //#region  get playlists
   async getPlaylists({ page = 1, perPage = 10, search, sort, userId = null }) {
     try {
       const offset = (page - 1) * perPage;
@@ -83,6 +84,9 @@ class PlaylistRepository {
       throw error;
     }
   }
+  //#endregion
+
+  //#region get playlist of user
   async getPlaylistsOfUser(targetUserId, userId) {
     try {
       var user = await UserModel.findByPk(targetUserId, {
@@ -153,6 +157,9 @@ class PlaylistRepository {
       throw error;
     }
   }
+  //#endregion
+
+  //#region add songs
   async addSongs(songIds = [], playlistId, userId) {
     try {
       const playlist = await PlayListModel.findOne({
@@ -183,7 +190,9 @@ class PlaylistRepository {
       throw error;
     }
   }
+  //#endregion
 
+  //#region delete songs
   async deleteSongs(songIds, playlistId, userId) {
     try {
       const playlist = await PlayListModel.findOne({
@@ -208,6 +217,29 @@ class PlaylistRepository {
       throw error;
     }
   }
+  //#endregion
+
+  //#region update
+  async update(name, playlistId, userId) {
+    try {
+      const playlist = await PlayListModel.findOne({
+        where: {
+          userId: userId,
+          id: playlistId,
+        },
+      });
+      if (playlist === null) throw new NotFoundError({ message: 'Not found playlist' });
+
+      playlist.name = name || playlist.name;
+      playlist.updateAt = new Date();
+      await playlist.save();
+      return playlist;
+    } catch (error) {
+      console.log(error.message);
+      throw error;
+    }
+  }
+  //#endregion
 }
 
 module.exports = new PlaylistRepository();

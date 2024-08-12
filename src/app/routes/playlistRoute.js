@@ -2,6 +2,7 @@ const express = require('express');
 const PlaylistController = require('../controllers/PlaylistController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const encodedToken = require('../middlewares/encodedToken');
+const { updateValidation } = require('../Validations/playlistValidation');
 
 const router = express.Router();
 
@@ -295,7 +296,7 @@ router.post('/add-songs', authMiddleware, PlaylistController.addSongsToPlaylist)
  *          description: Not Found Data
  *
  */
-router.put('/update', authMiddleware, PlaylistController.updatePlaylist);
+router.put('/update', updateValidation, authMiddleware, PlaylistController.updatePlaylist);
 
 /**
  * @swagger

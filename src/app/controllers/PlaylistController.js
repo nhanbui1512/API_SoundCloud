@@ -87,44 +87,12 @@ class PlayListController {
 
   async updatePlaylist(req, response) {
     const userId = req.userId;
-    const playlistId = Number(req.query.idPlaylist);
-    const songIds = [...req.body.idSongs];
+    const playlistId = Number(req.query.playlistId);
+    const name = req.query.name;
 
-    const name = req.body.name;
-    if (!playlistId) throw new ValidationError({ idPlaylist: 'Not validation' });
-    if (!name) throw new ValidationError({ message: 'name must be attached' });
+    const result = await playlistRepository.update(name, playlistId, userId);
 
-    const playlist = await PlayListModel.findOne({
-      where: {
-        userId: userId,
-        id: playlistId,
-      },
-    });
-    if (playlist === null) throw new NotFoundError({ playlist: 'Not found playlist' });
-
-    playlist.name = name;
-
-    await playlist.save();
-
-    var build = songIds.map((id) => {
-      return { songId: id, playlistId: playlistId };
-    });
-
-    var songPlaylist = await SongPlaylistModel.findAll({
-        where: {
-          songId: songIds,
-          playlistId: playlistId,
-        },
-      }),
-      songPlaylist = multiSqlizeToJSON(songPlaylist);
-
-    build = build.filter((song) => {
-      return songPlaylist.find((item) => item.songId === song.songId) ? false : true;
-    });
-
-    await SongPlaylistModel.bulkCreate(build);
-
-    return response.status(200).json({ isSuccess: true, message: 'Update playlist successfully' });
+    return response.status(200).json({ isSuccess: true, data: result });
   }
 
   async removeSongsToPlaylist(req, response) {
