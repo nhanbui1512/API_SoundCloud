@@ -1,6 +1,6 @@
 require('dotenv').config();
 function errorHandle(err, req, response, next) {
-  const devEnvironment = Boolean(process.env.DEV) || false;
+  const devEnvironment = process.env.dev.toLocaleLowerCase() === 'true';
 
   const messageError = err.messageObject || err.message;
   const statusError = err.status || 400;
