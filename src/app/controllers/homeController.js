@@ -6,7 +6,7 @@ class HomeController {
   async index(req, res) {
     try {
       // const song = await SongModel.findOne({});
-      const song = await playlistRepository.getPlaylistsOfUser(8, 1);
+      const song = await playlistRepository.deleteSongs([112, 111, 116], 9, 1);
 
       return res.json({ data: song });
     } catch (error) {

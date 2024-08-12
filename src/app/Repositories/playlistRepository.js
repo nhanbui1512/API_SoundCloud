@@ -1,6 +1,14 @@
 const { Op } = require('sequelize');
-const { PlayListModel, UserModel, SongModel, sequelize, GenreModel } = require('../models');
+const {
+  PlayListModel,
+  UserModel,
+  SongModel,
+  sequelize,
+  GenreModel,
+  SongPlaylistModel,
+} = require('../models');
 const { multiSqlizeToJSON, SqlizeToJSON } = require('../until/sequelize');
+const NotFoundError = require('../errors/NotFoundError');
 class PlaylistRepository {
   constructor() {}
   async getPlaylists({ page = 1, perPage = 10, search, sort, userId = null }) {
@@ -145,5 +153,52 @@ class PlaylistRepository {
       throw error;
     }
   }
+  async addSongs(songIds = [], playlistId) {
+    try {
+      const playlist = await PlayListModel.findByPk(playlistId);
+      if (playlist === null) throw new NotFoundError({ message: 'Not found playlist' });
+
+      var filterSongIds = Array(...new Set(songIds));
+      var newSongPlaylists = filterSongIds.map((song) => {
+        return { songId: song, playlistId: playlist.id };
+      });
+
+      var promises = newSongPlaylists.map((item) => {
+        return SongPlaylistModel.findOrCreate({
+          where: {
+            songId: item.songId,
+            playlistId: item.playlistId,
+          },
+        });
+      });
+
+      const result = await Promise.all(promises);
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteSongs(songIds, playlistId, userId) {
+    try {
+      const filterIds = Array(...new Set(songIds));
+      const conditions = filterIds.map((item) => {
+        return { songId: item, playlistId: playlistId };
+      });
+      const songPlaylists = await SongPlaylistModel.findAll({
+        where: {
+          [Op.or]: conditions,
+        },
+        include: {
+          model: PlayListModel,
+          as: 'playlist',
+        },
+      });
+      return songPlaylists;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
+
 module.exports = new PlaylistRepository();
