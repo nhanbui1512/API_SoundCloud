@@ -68,7 +68,7 @@ class SongRepository {
   //#endregion
 
   //#region  get Songs
-  async getSongs({ page = 1, perPage = 10, userId = null, search, sort }) {
+  async getSongs({ page = 1, perPage = 10, userId = null, search, sort, suffle = false }) {
     const offset = (page - 1) * perPage;
 
     //#region  search
@@ -132,7 +132,7 @@ class SongRepository {
         },
         limit: Number(perPage),
         offset: offset,
-        order: [['createAt', 'DESC']],
+        order: suffle ? sequelize.random() : [['createAt', 'DESC']],
       });
 
       res = multiSqlizeToJSON(res);
@@ -324,6 +324,24 @@ class SongRepository {
       throw error;
     }
   }
+  //#endregion
+
+  //#region Delete Song
+
+  async delete(songId, userId) {
+    try {
+      const result = await SongModel.destroy({
+        where: {
+          userId: userId,
+          id: songId,
+        },
+      });
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   //#endregion
 }
 module.exports = new SongRepository();
