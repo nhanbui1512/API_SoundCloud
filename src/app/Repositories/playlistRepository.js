@@ -153,9 +153,14 @@ class PlaylistRepository {
       throw error;
     }
   }
-  async addSongs(songIds = [], playlistId) {
+  async addSongs(songIds = [], playlistId, userId) {
     try {
-      const playlist = await PlayListModel.findByPk(playlistId);
+      const playlist = await PlayListModel.findOne({
+        where: {
+          id: playlistId,
+          userId: userId,
+        },
+      });
       if (playlist === null) throw new NotFoundError({ message: 'Not found playlist' });
 
       var filterSongIds = Array(...new Set(songIds));
@@ -181,20 +186,24 @@ class PlaylistRepository {
 
   async deleteSongs(songIds, playlistId, userId) {
     try {
+      const playlist = await PlayListModel.findOne({
+        where: {
+          id: playlistId,
+          userId: userId,
+        },
+      });
+      if (!playlist) throw new NotFoundError({ message: 'Not found playlist' });
       const filterIds = Array(...new Set(songIds));
       const conditions = filterIds.map((item) => {
         return { songId: item, playlistId: playlistId };
       });
-      const songPlaylists = await SongPlaylistModel.findAll({
+
+      const result = await SongPlaylistModel.destroy({
         where: {
           [Op.or]: conditions,
         },
-        include: {
-          model: PlayListModel,
-          as: 'playlist',
-        },
       });
-      return songPlaylists;
+      return result;
     } catch (error) {
       throw error;
     }

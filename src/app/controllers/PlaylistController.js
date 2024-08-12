@@ -58,25 +58,10 @@ class PlayListController {
     const userId = req.userId;
     const idPlaylist = req.query.idPlaylist;
     const idSongs = req.body.idSongs;
-    const name = req.body.name;
+
     if (!idPlaylist) throw new ValidationError({ message: 'IdPlaylist must be attached' });
-    if (!name) throw new ValidationError({ message: 'name must be attached' });
 
-    const playList = await PlayListModel.findOne({
-      where: {
-        userId: userId,
-        id: idPlaylist,
-      },
-    });
-
-    if (playList === null) throw new NotFoundError({ playlist: 'Not found' });
-
-    if (playList) {
-      playList.name = name;
-      await playList.save();
-    }
-
-    await createSongPlaylist(idSongs, idPlaylist); // add relationship song playlist
+    await playlistRepository.addSongs(idSongs, idPlaylist, userId);
 
     const PlayLists = await SongPlaylistModel.findAll({
       where: {
@@ -94,17 +79,10 @@ class PlayListController {
       ],
     });
 
-    if (PlayLists) {
-      return response.status(200).json({
-        result: true,
-        data: PlayLists,
-      });
-    } else {
-      return response.status(422).json({
-        result: false,
-        message: 'Playlist not found',
-      });
-    }
+    return response.status(200).json({
+      result: true,
+      data: PlayLists,
+    });
   }
 
   async updatePlaylist(req, response) {
@@ -155,16 +133,7 @@ class PlayListController {
     const idSongs = req.body.idSongs;
     if (!idPlaylist) throw new ValidationError({ message: 'IdPlaylist must be attached' });
 
-    const playList = await PlayListModel.findOne({
-      where: {
-        userId: userId,
-        id: idPlaylist,
-      },
-    });
-
-    if (playList === null) throw new NotFoundError({ playlist: 'Not found' });
-
-    await createSongPlaylist(idSongs, idPlaylist, 'delete'); // add relationship song playlist
+    await playlistRepository.deleteSongs(idSongs, idPlaylist, userId);
 
     var PlayLists = await SongPlaylistModel.findAll({
       where: {
@@ -178,17 +147,9 @@ class PlayListController {
       ],
     });
 
-    if (PlayLists !== null) {
-      return response.status(200).json({
-        isSuccess: true,
-        data: PlayLists,
-      });
-    } else {
-      return response.status(422).json({
-        isSuccess: false,
-        message: 'Playlist not found',
-      });
-    }
+    return response.status(200).json({
+      data: PlayLists,
+    });
   }
 
   async getAllPlaylist(req, response) {
@@ -389,7 +350,7 @@ class PlayListController {
 
     const user = await UserModel.findByPk(queryId, {
       attributes: {
-        exclude: 'password',
+        exclude: ['password', 'refreshToken'],
       },
     });
     if (user === null) throw new NotFoundError({ message: 'Not found user' });
