@@ -170,7 +170,8 @@ class PlaylistRepository {
       });
       if (playlist === null) throw new NotFoundError({ message: 'Not found playlist' });
 
-      var filterSongIds = Array(...new Set(songIds));
+      var filterSongIds = Array.of(...new Set(songIds));
+      console.log(filterSongIds);
       var newSongPlaylists = filterSongIds.map((song) => {
         return { songId: song, playlistId: playlist.id };
       });
@@ -202,7 +203,7 @@ class PlaylistRepository {
         },
       });
       if (!playlist) throw new NotFoundError({ message: 'Not found playlist' });
-      const filterIds = Array(...new Set(songIds));
+      const filterIds = Array.of(...new Set(songIds));
       const conditions = filterIds.map((item) => {
         return { songId: item, playlistId: playlistId };
       });

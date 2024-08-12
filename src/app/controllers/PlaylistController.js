@@ -58,10 +58,9 @@ class PlayListController {
     const userId = req.userId;
     const idPlaylist = req.query.idPlaylist;
     const idSongs = req.body.idSongs;
-
     if (!idPlaylist) throw new ValidationError({ message: 'IdPlaylist must be attached' });
 
-    await playlistRepository.addSongs(idSongs, idPlaylist, userId);
+    const reuslt = await playlistRepository.addSongs(idSongs, idPlaylist, userId);
 
     const PlayLists = await SongPlaylistModel.findAll({
       where: {
