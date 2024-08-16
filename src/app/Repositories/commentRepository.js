@@ -2,6 +2,7 @@ const NotFoundError = require('../errors/NotFoundError');
 const { UserModel, CommentModel } = require('../models');
 
 class CommentRepository {
+  //#region  find by id
   async findBySongId(songId, perPage, offset) {
     const getComments = async (parentId = null, limit, offset) => {
       const comments = await CommentModel.findAll({
@@ -35,7 +36,9 @@ class CommentRepository {
 
     return await getComments(null, perPage, offset);
   }
+  //#endregion
 
+  //#region get children comments
   async getChilrenComments(commentId, perPage, offset) {
     try {
       const { count, rows } = await CommentModel.findAndCountAll({
@@ -58,7 +61,9 @@ class CommentRepository {
       throw error;
     }
   }
+  //#endregion
 
+  //#region  update
   async update(commentId, userId, content) {
     try {
       const comment = await CommentModel.findOne({
@@ -76,7 +81,9 @@ class CommentRepository {
       throw error;
     }
   }
+  ////#endregion
 
+  //#region delete
   async delete(commentId, userId) {
     try {
       const alterRows = await CommentModel.destroy({
@@ -90,7 +97,9 @@ class CommentRepository {
       throw error;
     }
   }
+  //#endregion
 
+  //#region find by id
   async findById(commentId) {
     try {
       const comment = await CommentModel.findByPk(commentId);
@@ -99,5 +108,6 @@ class CommentRepository {
       throw error;
     }
   }
+  //#endregion
 }
 module.exports = new CommentRepository();
