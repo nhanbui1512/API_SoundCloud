@@ -192,9 +192,13 @@ class SongController {
         id: songId,
       },
     });
-
     if (song === null) throw new NotfoundError({ song: 'User not own this song' });
 
+    const link = song.linkFile;
+    const startIndex = link.lastIndexOf('audios');
+    const publicId = link.substring(startIndex, link.length - 4); // length -4 to delete .mp3
+
+    await cloudinary.uploader.destroy(publicId, { resource_type: 'video' });
     await song.destroy();
     return response.status(200).json({
       isSuccess: true,
