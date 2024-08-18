@@ -28,11 +28,35 @@ class FollowRepository {
             ],
             exclude: ['password', 'refreshToken'],
           },
+          include: {
+            model: SongModel,
+            attributes: {
+              include: [
+                [
+                  sequelize.literal(
+                    `(SELECT CASE WHEN EXISTS (SELECT 1 FROM userlikesongs WHERE userId = ${userId} AND songId = \`following->songs\`.id) THEN TRUE ELSE FALSE END AS result)`,
+                  ),
+                  'isLiked',
+                ],
+                [
+                  sequelize.literal(
+                    `(select count (*) from userlikesongs where songId = \`following->songs\`.id )`,
+                  ),
+                  'likeCount',
+                ],
+              ],
+            },
+          },
         },
       });
       followers = multiSqlizeToJSON(followers);
       followers.forEach((follower) => {
         follower.following.isFollowed = follower.following.isFollowed === 1 ? true : false;
+        follower.songs = follower.following.songs;
+        delete follower.following.songs;
+        follower.songs.forEach((item) => {
+          item.isLiked = item.isLiked === 1 ? true : false;
+        });
       });
       return followers;
     } catch (error) {
