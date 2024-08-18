@@ -9,105 +9,25 @@ const {
   SongModel,
   UserLikeSongModel,
 } = require('../models');
+const followRepository = require('../Repositories/followRepository');
 const { multiSqlizeToJSON } = require('../until/sequelize');
 
 class Follower {
   async getCountFollowByIdUser(req, response) {
     const idUser = req.query.idUser;
-    if (idUser) {
-      var userFollows = await FollowUserModel.findAll({
-        where: {
-          followed: idUser,
-        },
-      });
-      userFollows = multiSqlizeToJSON(userFollows);
-      return response.status(200).json({
-        result: true,
-        data: userFollows,
-      });
-    } else {
-      return response.status(422).json({
-        result: false,
-        message: 'IdUser must be attached',
-      });
-    }
+    const followers = await followRepository.getFollower(idUser);
+    return response.status(200).json({ data: followers });
   }
 
   // Lấy ra những người mình đang follow
   async getMyFollowing(req, response, next) {
     const userId = req.userId;
-    var userFollowers = await FollowUserModel.findAll({
-        where: {
-          user_id: userId,
-        },
-        include: {
-          model: UserModel,
-          as: 'following',
-          attributes: {
-            exclude: ['password'],
-          },
-        },
-        attributes: {
-          exclude: ['user_id'],
-        },
-        order: [['createAt', 'DESC']],
-      }),
-      userFollowers = multiSqlizeToJSON(userFollowers);
-
-    const followingIds = userFollowers.map((follower) => follower.followed);
-    const userIds = userFollowers.map((user) => user.followed);
-
-    var userFollows = await FollowUserModel.findAll({
-      where: {
-        followed: userIds,
-      },
-    });
-    userFollows = multiSqlizeToJSON(userFollows);
-
-    var songs = await SongModel.findAll({
-        // những bài hát của những người mình follow
-        where: {
-          ownerId: followingIds,
-        },
-      }),
-      songs = multiSqlizeToJSON(songs);
-
-    const songIds = songs.map((song) => song.id); // id những bài hát của những người mình follow
-    var userLikeSongs = await UserLikeSongModel.findAll({
-        where: {
-          songId: songIds,
-        },
-      }),
-      userLikeSongs = multiSqlizeToJSON(userLikeSongs);
-
-    songs = songs.map((song) => {
-      song.isLiked = userLikeSongs.find(
-        (liked) => liked.songId === song.id && liked.userId === userId,
-      )
-        ? true
-        : false;
-      song.likeCount = userLikeSongs.filter((liked) => liked.songId === song.id).length;
-
-      return song;
-    });
-
-    userFollowers = userFollowers.map((follower) => {
-      follower.following.countFollow = 0;
-      userFollows.map((user) => {
-        if (user.followed === follower.followed) {
-          follower.following.countFollow += 1;
-        }
-      });
-
-      follower.songs = songs.filter((song) => song.ownerId === follower.followed);
-      follower.following.isFollow = true;
-      return follower;
-    });
+    const followers = await followRepository.getFollower(userId, userId);
 
     return response.status(200).json({
       data: {
-        count: userFollowers.length,
-        data: userFollowers,
+        count: followers.length,
+        data: followers,
       },
     });
   }

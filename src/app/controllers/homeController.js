@@ -1,14 +1,15 @@
 const { SongModel } = require('../models');
 const songRepository = require('../Repositories/songRepository');
 const playlistRepository = require('../Repositories/playlistRepository');
+const followRepository = require('../Repositories/followRepository');
 
 class HomeController {
   async index(req, res) {
     try {
       // const song = await SongModel.findOne({});
-      const song = await playlistRepository.getFollowingPlaylists(1, 1);
+      const followers = await followRepository.getFollower(11, 1);
 
-      return res.json({ data: song });
+      return res.json({ data: followers });
     } catch (error) {
       throw error;
     }
