@@ -2,7 +2,7 @@ const { FollowUserModel, UserModel, sequelize, SongModel } = require('../models'
 const { multiSqlizeToJSON } = require('../until/sequelize');
 
 class FollowRepository {
-  async getFollower(targetId, userId = null) {
+  async getFollowingUser(targetId, userId = null) {
     try {
       let followers = await FollowUserModel.findAll({
         where: {
@@ -61,6 +61,41 @@ class FollowRepository {
       return followers;
     } catch (error) {
       throw error;
+    }
+  }
+
+  async getFollowers(targetId, userId = null) {
+    try {
+      const followers = await FollowUserModel.findAll({
+        where: {
+          followed: targetId,
+        },
+        include: {
+          model: UserModel,
+          as: 'follower',
+          attributes: {
+            exclude: ['password', 'refreshToken'],
+            include: [
+              [
+                sequelize.literal(
+                  `(SELECT CASE WHEN EXISTS (SELECT 1 FROM follow_users WHERE followed = follower.id and user_id = ${userId}) THEN TRUE ELSE FALSE END AS result)`,
+                ),
+                'isFollowed',
+              ],
+              [
+                sequelize.literal(
+                  `(select count (*) from follow_users where followed = follower.id)`,
+                ),
+                'countFollow',
+              ],
+            ],
+          },
+        },
+      });
+
+      return followers;
+    } catch (err) {
+      throw err;
     }
   }
 }

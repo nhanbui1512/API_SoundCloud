@@ -1,16 +1,8 @@
 const NotFoundError = require('../errors/NotFoundError');
 const ValidationError = require('../errors/ValidationError');
 
-const {
-  FollowUserModel,
-  UserModel,
-  FollowPlaylistModel,
-  PlayListModel,
-  SongModel,
-  UserLikeSongModel,
-} = require('../models');
+const { FollowUserModel, UserModel, FollowPlaylistModel, PlayListModel } = require('../models');
 const followRepository = require('../Repositories/followRepository');
-const { multiSqlizeToJSON } = require('../until/sequelize');
 
 class Follower {
   async getCountFollowByIdUser(req, response) {
@@ -22,7 +14,7 @@ class Follower {
   // Lấy ra những người mình đang follow
   async getMyFollowing(req, response, next) {
     const userId = req.userId;
-    const followers = await followRepository.getFollower(userId, userId);
+    const followers = await followRepository.getFollowingUser(userId, userId);
 
     return response.status(200).json({
       data: {
@@ -35,22 +27,11 @@ class Follower {
   // Lấy ra những người đang follow mình
   async getMyFollowers(req, response, next) {
     const userId = req.userId;
-    const followers = await FollowUserModel.findAndCountAll({
-      where: {
-        followed: userId,
-      },
-      include: {
-        model: UserModel,
-        as: 'follower',
-      },
-      attributes: {
-        exclude: ['user_id'],
-      },
-    });
+    const followers = await followRepository.getFollowers(userId);
 
     return response.status(200).json({
-      count: followers.count,
-      data: followers.rows,
+      count: followers.length,
+      data: followers,
     });
   }
 
