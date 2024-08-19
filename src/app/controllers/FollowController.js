@@ -3,6 +3,8 @@ const ValidationError = require('../errors/ValidationError');
 
 const { FollowUserModel, UserModel, FollowPlaylistModel, PlayListModel } = require('../models');
 const followRepository = require('../Repositories/followRepository');
+const userRepository = require('../Repositories/userRepository');
+const { SqlizeToJSON } = require('../until/sequelize');
 
 class Follower {
   async getCountFollowByIdUser(req, response) {
@@ -37,56 +39,22 @@ class Follower {
 
   // Action follow
   async followUser(req, response, next) {
-    const userFolled = req.query.user_id;
+    const userFollowed = req.query.user_id;
     const userId = req.userId;
-    if (!userFolled) {
+    if (!userFollowed) {
       throw new ValidationError({ user_id: 'Must be attached' });
     }
+    let targetUser = await userRepository.findById(userFollowed);
+    if (targetUser === null) throw new NotFoundError({ user: 'Not found User' });
 
-    const user = await UserModel.findByPk(userFolled);
+    if (userId === targetUser.id) throw new NotFoundError({ user: 'My user' });
+    const isFollowed = await followRepository.followUser(targetUser.id, userId);
 
-    if (user === null) throw new NotFoundError({ user: 'Not found User' });
-    if (userId === userFolled) throw new NotFoundError({ user: 'My user' });
+    if (isFollowed[1] == false)
+      return response.status(200).json({ status: 200, data: isFollowed[0] });
 
-    const checkFollow = await FollowUserModel.findOne({
-      where: {
-        user_id: userId,
-        followed: userFolled,
-      },
-    });
-    if (checkFollow) {
-      return response.status(200).json({ result: true, message: 'You followed user' });
-    } else {
-      const result = await FollowUserModel.findOrCreate({
-        where: {
-          user_id: userId,
-          followed: userFolled,
-        },
-      });
-
-      const dataResponse = await FollowUserModel.findByPk(result[0].toJSON().id, {
-        include: [
-          {
-            as: 'follower',
-            model: UserModel,
-            attributes: {
-              exclude: ['password'],
-            },
-          },
-          {
-            model: UserModel,
-            as: 'following',
-            attributes: {
-              exclude: ['password'],
-            },
-          },
-        ],
-        attributes: {
-          exclude: ['user_id', 'followed'],
-        },
-      });
-      return response.status(200).json({ data: dataResponse });
-    }
+    isFollowed[0].following = targetUser;
+    return response.status(200).json({ status: 200, data: isFollowed[0] });
   }
 
   // Action Unfollow

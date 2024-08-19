@@ -98,6 +98,36 @@ class FollowRepository {
       throw err;
     }
   }
+
+  async followUser(targetId, userId) {
+    try {
+      const res = await FollowUserModel.findOrCreate({
+        where: {
+          followed: targetId,
+          user_id: userId,
+        },
+        include: [
+          {
+            model: UserModel,
+            as: 'following',
+            attributes: {
+              exclude: ['password', 'refreshToken'],
+            },
+          },
+          {
+            model: UserModel,
+            as: 'follower',
+            attributes: {
+              exclude: ['password', 'refreshToken'],
+            },
+          },
+        ],
+      });
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = new FollowRepository();
