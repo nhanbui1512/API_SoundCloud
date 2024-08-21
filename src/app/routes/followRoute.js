@@ -2,6 +2,7 @@ const express = require('express');
 const FollowController = require('../controllers/FollowController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const enCodedToken = require('../middlewares/encodedToken');
+const followValidation = require('../Validations/followValidation');
 
 const router = express.Router();
 
@@ -39,7 +40,12 @@ const router = express.Router();
  */
 
 // đếm số người đang theo dõi bằng IdUser
-router.get('/', enCodedToken, FollowController.getCountFollowByIdUser);
+router.get(
+  '/',
+  followValidation.getFollowers,
+  enCodedToken,
+  FollowController.getCountFollowByIdUser,
+);
 
 /**
  * @swagger
@@ -134,7 +140,12 @@ router.get('/playlists', authMiddleware, FollowController.MyPlaylists);
  *       '404':
  *          description: Not Found Data
  */
-router.post('/playlists', authMiddleware, FollowController.followPlaylist);
+router.post(
+  '/playlists',
+  followValidation.followPlaylist,
+  authMiddleware,
+  FollowController.followPlaylist,
+);
 
 /**
  * @swagger
@@ -149,7 +160,7 @@ router.post('/playlists', authMiddleware, FollowController.followPlaylist);
  *      - in: query
  *        name: idPlaylist
  *        schema:
- *          type: string
+ *          type: integer
  *          default: 1
  *        required: true
  *        description: playlist id
@@ -163,7 +174,12 @@ router.post('/playlists', authMiddleware, FollowController.followPlaylist);
  *       '404':
  *          description: Not Found Data
  */
-router.delete('/playlists', authMiddleware, FollowController.Unfollowplaylist);
+router.delete(
+  '/playlists',
+  followValidation.unFollowPlaylist,
+  authMiddleware,
+  FollowController.Unfollowplaylist,
+);
 
 /**
  * @swagger
@@ -178,7 +194,7 @@ router.delete('/playlists', authMiddleware, FollowController.Unfollowplaylist);
  *      - in: query
  *        name: user_id
  *        schema:
- *          type: string
+ *          type: integer
  *          default: 1
  *        required: true
  *        description: user id
@@ -193,7 +209,7 @@ router.delete('/playlists', authMiddleware, FollowController.Unfollowplaylist);
  *          description: Not Found Data
  */
 
-router.delete('/', authMiddleware, FollowController.unFollowUser);
+router.delete('/', followValidation.unFollowUser, authMiddleware, FollowController.unFollowUser);
 
 /**
  * @swagger
@@ -208,7 +224,7 @@ router.delete('/', authMiddleware, FollowController.unFollowUser);
  *      - in: query
  *        name: user_id
  *        schema:
- *          type: string
+ *          type: integer
  *          default: 1
  *        required: true
  *        description: user id
@@ -223,5 +239,5 @@ router.delete('/', authMiddleware, FollowController.unFollowUser);
  *          description: Not Found Data
  */
 
-router.post('/', authMiddleware, FollowController.followUser);
+router.post('/', followValidation.followUser, authMiddleware, FollowController.followUser);
 module.exports = router;
