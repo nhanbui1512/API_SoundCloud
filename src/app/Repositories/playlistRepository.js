@@ -333,6 +333,59 @@ class PlaylistRepository {
       throw error;
     }
   }
+
+  async getById(id, userId = null) {
+    try {
+      let playlist = await PlayListModel.findByPk(id, {
+        include: [
+          {
+            model: UserModel,
+            attributes: {
+              exclude: ['password', 'refreshToken'],
+            },
+          },
+          {
+            model: SongModel,
+            as: 'songs',
+            include: {
+              model: UserModel,
+              attributes: {
+                exclude: ['password', 'refreshToken'],
+              },
+            },
+            attributes: {
+              include: [
+                [
+                  sequelize.literal(
+                    `(select case when exists (select 1 from userlikesongs where userId = ${userId} and songId = songs.id) then true else false end as result)`,
+                  ),
+                  'isLiked',
+                ],
+                [
+                  sequelize.literal(
+                    `(select count (*) from userlikesongs where songId = songs.id)`,
+                  ),
+                  'likeCount',
+                ],
+              ],
+            },
+          },
+        ],
+      });
+
+      playlist = SqlizeToJSON(playlist);
+
+      playlist.songs.forEach((song) => {
+        song.owner = song.user;
+        delete song.user;
+        delete song.song_playlist;
+        song.isLiked = song.isLiked === 1 ? true : false;
+      });
+      return playlist;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = new PlaylistRepository();
