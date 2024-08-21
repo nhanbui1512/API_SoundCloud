@@ -2,7 +2,11 @@ const express = require('express');
 const PlaylistController = require('../controllers/PlaylistController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const encodedToken = require('../middlewares/encodedToken');
-const { updateValidation, getPlaylist } = require('../Validations/playlistValidation');
+const {
+  updateValidation,
+  getPlaylist,
+  getPlaylistByUserId,
+} = require('../Validations/playlistValidation');
 
 const router = express.Router();
 
@@ -87,7 +91,7 @@ router.get('/getall', getPlaylist, encodedToken, PlaylistController.getAllPlayli
  *      - in: query
  *        name: idUser
  *        schema:
- *          type: string
+ *          type: integer
  *        required: true
  *        description: id of user
  *     requestBody:
@@ -101,7 +105,12 @@ router.get('/getall', getPlaylist, encodedToken, PlaylistController.getAllPlayli
  *          description: Not Found Data
  *
  */
-router.get('/get-playlist-user', encodedToken, PlaylistController.getPlaylistByUserId);
+router.get(
+  '/get-playlist-user',
+  getPlaylistByUserId,
+  encodedToken,
+  PlaylistController.getPlaylistByUserId,
+);
 
 /**
  * @swagger

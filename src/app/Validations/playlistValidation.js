@@ -27,7 +27,20 @@ const getPlaylist = async (req, response, next) => {
   }
 };
 
+const getPlaylistByUserId = async (req, response, next) => {
+  try {
+    const condition = Joi.object({
+      idUser: Joi.number().integer().min(1).required(),
+    });
+    await condition.validateAsync(req.query);
+    return next();
+  } catch (error) {
+    return response.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ errros: error.message });
+  }
+};
+
 module.exports = {
   updateValidation,
   getPlaylist,
+  getPlaylistByUserId,
 };

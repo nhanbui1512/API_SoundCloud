@@ -121,16 +121,9 @@ class PlayListController {
   }
 
   async getAllPlaylist(req, response) {
-    const errors = [];
     const userId = req.userId;
-    const pageCurrent = Number(req.query.page) || 1;
-    const perPage = Number(req.query.per_page) || 10;
-
-    if (perPage > 100) perPage = 100;
-
-    if (!pageCurrent) errors.push({ pageCurrent: 'Page current not validation' });
-    if (!perPage) errors.push({ perPage: 'per_page not validation' });
-    if (errors.length > 0) throw new ValidationError(errors);
+    const pageCurrent = Number(req.query.page);
+    const perPage = Number(req.query.per_page);
 
     const data = await playlistRepository.getPlaylists({
       page: pageCurrent,
