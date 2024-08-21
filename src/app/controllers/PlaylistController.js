@@ -124,122 +124,20 @@ class PlayListController {
     const errors = [];
     const userId = req.userId;
     const pageCurrent = Number(req.query.page) || 1;
-    const per_page = Number(req.query.per_page) || 10;
+    const perPage = Number(req.query.per_page) || 10;
 
-    if (per_page > 100) per_page = 100;
-    const offset = (pageCurrent - 1) * per_page;
+    if (perPage > 100) perPage = 100;
+
     if (!pageCurrent) errors.push({ pageCurrent: 'Page current not validation' });
-    if (!per_page) errors.push({ per_page: 'per_page not validation' });
+    if (!perPage) errors.push({ perPage: 'per_page not validation' });
     if (errors.length > 0) throw new ValidationError(errors);
 
-    try {
-      var playlists = await PlayListModel.findAll({
-        include: [
-          {
-            model: UserModel,
-            attributes: {
-              exclude: ['password'],
-            },
-          },
-        ],
-        attributes: {
-          exclude: ['userId'],
-        },
-        limit: per_page,
-        offset: offset,
-        order: [['createAt', 'DESC']],
-      });
-
-      const idPlaylists = playlists.map((playlist) => {
-        return playlist.id;
-      });
-
-      const follows = await FollowPlaylistModel.findAll({
-        where: {
-          playlistId: idPlaylists,
-        },
-        include: [
-          {
-            model: UserModel,
-            as: 'followingUser',
-            attributes: {
-              exclude: ['password'],
-            },
-          },
-        ],
-      });
-
-      // Lấy ra các bài hát có trong playlist
-      var songs = await SongPlaylistModel.findAll({
-        where: {
-          playlistId: idPlaylists,
-        },
-        include: [
-          {
-            model: SongModel,
-            as: 'song',
-          },
-        ],
-      });
-      songs = multiSqlizeToJSON(songs);
-
-      var playlistSongs = playlists.map((playlist) => {
-        playlist = playlist.toJSON();
-
-        playlist.songs = [];
-        songs.map((song) => {
-          playlist.songs.push(song.song);
-        });
-        return playlist;
-      });
-      if (userId) {
-        var result = playlistSongs.map((playlist) => {
-          playlist.owner = playlist.user;
-          delete playlist.user;
-
-          // kiểm tra user có follow playlist hay không
-
-          playlist.isFollowed = follows.find(
-            (follow) => follow.userId === userId && playlist.id === follow.playlistId,
-          )
-            ? true
-            : false;
-
-          var count = follows.reduce((followCount, follow) => {
-            if (follow.playlistId === playlist.id) return followCount + 1;
-            else return followCount;
-          }, 0);
-
-          playlist.followCount = count;
-          return playlist;
-        });
-
-        // Xáo trộn mảng
-        result = shuffleArray(result);
-
-        return response.status(200).json({ data: result });
-      }
-
-      var result = playlistSongs.map((playlist) => {
-        playlist.owner = playlist.user;
-        delete playlist.user;
-
-        var count = follows.reduce((followCount, follow) => {
-          if (follow.playlistId === playlist.id) return followCount + 1;
-          else return followCount;
-        }, 0);
-
-        playlist.followCount = count;
-        return playlist;
-      });
-      // Xáo trộn mảng
-      result = shuffleArray(result);
-
-      return response.status(200).json({ data: result });
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
+    const data = await playlistRepository.getPlaylists({
+      page: pageCurrent,
+      perPage: perPage,
+      userId: userId,
+    });
+    return response.status(StatusCodes.OK).json({ count: data.length, data });
   }
 
   async getPlaylistById(req, response) {

@@ -14,6 +14,20 @@ const updateValidation = async (req, response, next) => {
   }
 };
 
+const getPlaylist = async (req, response, next) => {
+  try {
+    const condition = Joi.object({
+      page: Joi.number().integer().min(1),
+      per_page: Joi.number().integer().min(1).max(100),
+    });
+    await condition.validateAsync(req.query, { abortEarly: false });
+    return next();
+  } catch (error) {
+    return response.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ errors: error.message });
+  }
+};
+
 module.exports = {
   updateValidation,
+  getPlaylist,
 };

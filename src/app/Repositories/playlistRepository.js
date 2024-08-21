@@ -35,41 +35,58 @@ class PlaylistRepository {
               ),
               'isFollowed',
             ],
+
             [
               sequelize.literal(
                 `(SELECT COUNT (*) FROM song_playlist WHERE playlistId = playlists.id)`,
               ),
               'songCount',
             ],
-          ],
-        },
-        include: {
-          model: SongModel,
-          as: 'songs',
-          include: [
-            {
-              model: GenreModel,
-            },
-          ],
-
-          attributes: {
-            include: [
-              [
-                sequelize.literal(
-                  `(SELECT CASE WHEN EXISTS (SELECT 1 FROM userlikesongs WHERE userId = ${userId} AND songId = songs.id) THEN TRUE ELSE FALSE END AS result)`,
-                ),
-                'isLiked',
-              ],
+            [
+              sequelize.literal(
+                `(SELECT COUNT (*) FROM follow_playlists WHERE playlistId = playlists.id)`,
+              ),
+              'followCount',
             ],
-            exclude: ['genreId'],
-          },
+          ],
         },
+        include: [
+          {
+            model: UserModel,
+            attributes: {
+              exclude: ['password', 'refreshToken'],
+            },
+          },
+          {
+            model: SongModel,
+            as: 'songs',
+            include: [
+              {
+                model: GenreModel,
+              },
+            ],
+
+            attributes: {
+              include: [
+                [
+                  sequelize.literal(
+                    `(SELECT CASE WHEN EXISTS (SELECT 1 FROM userlikesongs WHERE userId = ${userId} AND songId = songs.id) THEN TRUE ELSE FALSE END AS result)`,
+                  ),
+                  'isLiked',
+                ],
+              ],
+              exclude: ['genreId'],
+            },
+          },
+        ],
         offset: offset,
         limit: perPage,
       });
       playlists = multiSqlizeToJSON(playlists);
 
       playlists.forEach((playlist) => {
+        playlist.owner = playlist.user;
+        delete playlist.user;
         playlist.isFollowed = playlist.isFollowed === 1 ? true : false;
         playlist.songs.forEach((song) => {
           delete song.song_playlist;
