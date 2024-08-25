@@ -19,6 +19,7 @@ const getPlaylist = async (req, response, next) => {
     const condition = Joi.object({
       page: Joi.number().integer().min(1),
       per_page: Joi.number().integer().min(1).max(100),
+      sort: Joi.string().max(50),
     });
     await condition.validateAsync(req.query, { abortEarly: false });
     return next();

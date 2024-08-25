@@ -124,11 +124,13 @@ class PlayListController {
     const userId = req.userId;
     const pageCurrent = Number(req.query.page);
     const perPage = Number(req.query.per_page);
+    const sort = req.query.sort;
 
     const data = await playlistRepository.getPlaylists({
       page: pageCurrent,
       perPage: perPage,
       userId: userId,
+      sort: sort,
     });
     return response.status(StatusCodes.OK).json({ count: data.length, data });
   }

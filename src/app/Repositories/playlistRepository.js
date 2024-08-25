@@ -13,7 +13,7 @@ const NotFoundError = require('../errors/NotFoundError');
 class PlaylistRepository {
   constructor() {}
   //#region  get playlists
-  async getPlaylists({ page = 1, perPage = 10, search, sort, userId = null }) {
+  async getPlaylists({ page = 1, perPage = 10, search, sort, random = false, userId = null }) {
     try {
       const offset = (page - 1) * perPage;
       var condition = {};
@@ -81,6 +81,7 @@ class PlaylistRepository {
         ],
         offset: offset,
         limit: perPage,
+        order: random ? sequelize.random() : [['createAt', 'DESC']],
       });
       playlists = multiSqlizeToJSON(playlists);
 
@@ -96,6 +97,33 @@ class PlaylistRepository {
         });
       });
 
+      switch (sort) {
+        case 'create_asc':
+          playlists.sort((a, b) => new Date(a.createAt) - new Date(b.createAt));
+          break;
+        case 'create_desc':
+          playlists.sort((a, b) => new Date(b.createAt) - new Date(a.createAt));
+        case 'name_asc':
+          playlists.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+        case 'name_desc':
+          playlists.sort((a, b) => b.name.localeCompare(a.name));
+          break;
+        case 'song_count_asc':
+          playlists.sort((a, b) => a.songCount - b.songCount);
+          break;
+        case 'song_count_desc':
+          playlists.sort((a, b) => b.songCount - a.songCount);
+          break;
+        case 'follow_asc':
+          playlists.sort((a, b) => a.followCount - b.followCount);
+          break;
+        case 'follow_desc':
+          playlists.sort((a, b) => b.followCount - a.followCount);
+          break;
+        default:
+          break;
+      }
       return playlists;
     } catch (error) {
       console.log(error);
