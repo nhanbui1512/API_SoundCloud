@@ -1,4 +1,3 @@
-const { shuffleArray } = require('../until/arrays');
 const NotFoundError = require('../errors/NotFoundError');
 const ValidationError = require('../errors/ValidationError');
 const {
@@ -7,12 +6,9 @@ const {
   UserModel,
   SongPlaylistModel,
   SongModel,
-  sequelize,
-  FollowUserModel,
 } = require('../models');
 
 const { createSongPlaylist } = require('../until/songPlaylist');
-const { multiSqlizeToJSON } = require('../until/sequelize');
 const playlistRepository = require('../Repositories/playlistRepository');
 const { StatusCodes } = require('http-status-codes');
 
