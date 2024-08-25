@@ -17,6 +17,7 @@ const playlistRepository = require('../Repositories/playlistRepository');
 const { StatusCodes } = require('http-status-codes');
 
 class PlayListController {
+  //#region create playlist
   async createPlaylist(req, response) {
     const userId = req.userId;
     const errors = [];
@@ -54,7 +55,9 @@ class PlayListController {
       });
     }
   }
+  //#endregion
 
+  //#region add songs
   async addSongsToPlaylist(req, response) {
     const userId = req.userId;
     const idPlaylist = req.query.idPlaylist;
@@ -84,7 +87,9 @@ class PlayListController {
       data: PlayLists,
     });
   }
+  //#endregion
 
+  //#region update playlist
   async updatePlaylist(req, response) {
     const userId = req.userId;
     const playlistId = Number(req.query.playlistId);
@@ -94,7 +99,9 @@ class PlayListController {
 
     return response.status(200).json({ isSuccess: true, data: result });
   }
+  //#endregion
 
+  //#region remove songs
   async removeSongsToPlaylist(req, response) {
     const userId = req.userId;
     const idPlaylist = req.query.idPlaylist;
@@ -119,7 +126,9 @@ class PlayListController {
       data: PlayLists,
     });
   }
+  //#endregion
 
+  //#region get all
   async getAllPlaylist(req, response) {
     const userId = req.userId;
     const pageCurrent = Number(req.query.page);
@@ -134,7 +143,9 @@ class PlayListController {
     });
     return response.status(StatusCodes.OK).json({ count: data.length, data });
   }
+  //#endregion
 
+  //#region get playlist by id
   async getPlaylistById(req, response) {
     const idPlaylist = req.query.idPlaylist;
     const userId = req.userId || null;
@@ -145,7 +156,9 @@ class PlayListController {
       data: playlist,
     });
   }
+  //#endregion
 
+  //#region get playlists of user
   async getPlaylistByUserId(req, response) {
     const queryId = Number(req.query.idUser);
     if (!queryId) throw new ValidationError({ idUser: 'Not validation' });
@@ -167,7 +180,9 @@ class PlayListController {
       },
     });
   }
+  //#endregion
 
+  //#region delete playlist
   async deletePlaylistById(req, response) {
     const idPlaylist = req.query.idPlaylist;
     const playlist = await PlayListModel.destroy({
@@ -180,14 +195,17 @@ class PlayListController {
       data: playlist,
     });
   }
+  //#endregion
 
-  // get follow-playlists
+  //#region get my playlist
   async MyPlaylists(req, response) {
     const userId = req.userId;
     const data = await playlistRepository.getFollowingPlaylists(userId, userId);
     return response.status(StatusCodes.OK).json({ data });
   }
+  //#endregion
 
+  //#region get followers
   async getUserFollowPlaylist(req, response) {
     const playlistId = req.query.idPlaylist;
     if (!playlistId) throw NotFoundError({ playlistId: 'Must be filled' });
@@ -217,112 +235,23 @@ class PlayListController {
       });
     }
   }
+  //#endregion
 
+  //#region get random
   async getRandomPlaylist(req, response) {
     const quantity = Number(req.query.quantity);
-    const userId = req.userId || -1;
+    const userId = req.userId;
     if (!quantity) throw new ValidationError({ quantity: 'Not validation' });
 
-    var playlists = await PlayListModel.findAll({
-        attributes: {
-          include: [
-            [
-              sequelize.literal(
-                `(SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END AS result FROM follow_playlists  WHERE follow_playlists.userId = ${userId} AND follow_playlists.playlistId = playlists.id)`,
-              ),
-              'isFollowed',
-            ],
-          ],
-        },
-        include: {
-          model: UserModel,
-          attributes: {
-            include: [
-              [
-                sequelize.literal(
-                  `(SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END AS result FROM follow_users  WHERE follow_users.user_id = ${userId} AND follow_users.followed = user.id)`,
-                ),
-                'isFollowed',
-              ],
-            ],
-            exclude: 'password',
-          },
-        },
-        limit: quantity,
-        order: sequelize.random(),
-      }),
-      playlists = multiSqlizeToJSON(playlists);
-
-    const playlistIds = playlists.map((playlist) => playlist.id);
-
-    var songsOfPlaylist = await SongPlaylistModel.findAll({
-        where: {
-          playlistId: playlistIds,
-        },
-        include: [
-          {
-            model: SongModel,
-            as: 'song',
-            attributes: {
-              include: [
-                [
-                  sequelize.literal(
-                    `(SELECT  COUNT(*) FROM userlikesongs WHERE userlikesongs.songId = song.id)`,
-                  ),
-                  'likeCount',
-                ],
-                [
-                  sequelize.literal(
-                    `(SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END AS result FROM userlikesongs  WHERE userlikesongs.userId = ${userId} AND userlikesongs.songId = song.id)`,
-                  ),
-                  'isLiked',
-                ],
-              ],
-            },
-            include: {
-              model: UserModel,
-              attributes: {
-                exclude: 'password',
-              },
-            },
-          },
-        ],
-      }),
-      songsOfPlaylist = multiSqlizeToJSON(songsOfPlaylist);
-
-    var ownerIds = songsOfPlaylist.map((item) => item.song.user.id);
-    ownerIds = [...new Set(ownerIds)];
-
-    var userFollowed = await FollowUserModel.findAll({
-        where: {
-          user_id: userId,
-          followed: ownerIds,
-        },
-      }),
-      userFollowed = multiSqlizeToJSON(userFollowed);
-
-    songsOfPlaylist = songsOfPlaylist.map((item) => {
-      item.song.isLiked = Boolean(item.song.isLiked);
-      item.song.user.isFollowed = userFollowed.find(
-        (follow) => follow.followed === item.song.user.id,
-      )
-        ? true
-        : false;
-      return item;
+    const playlists = await playlistRepository.getPlaylists({
+      page: 1,
+      perPage: quantity,
+      random: true,
+      userId,
     });
-
-    playlists.map((playlist) => {
-      playlist.isFollowed = Boolean(playlist.isFollowed);
-      playlist.owner = playlist.user;
-      playlist.owner.isFollowed = Boolean(playlist.owner.isFollowed);
-      delete playlist.user;
-      var songs = songsOfPlaylist.filter((songPlaylist) => songPlaylist.playlistId === playlist.id);
-      playlist.songs = songs.map((song) => song.song);
-      playlist.countSong = songs.length;
-    });
-
     return response.status(200).json({ data: playlists });
   }
+  //#endregion
 }
 
 module.exports = new PlayListController();
