@@ -1,3 +1,4 @@
+const { Sequelize } = require('sequelize');
 const { UserModel, FollowUserModel, SongModel, sequelize } = require('../models');
 const { SqlizeToJSON, multiSqlizeToJSON } = require('../until/sequelize');
 
@@ -11,8 +12,17 @@ class UserRepository {
     }
   }
   async findAll(limit, offset, userId = null) {
+    let condition = {};
+    if (userId !== null) {
+      condition = {
+        id: {
+          [Sequelize.Op.ne]: 1,
+        },
+      };
+    }
     try {
       var { count, rows } = await UserModel.findAndCountAll({
+        where: condition,
         attributes: {
           exclude: ['refreshToken', 'password'],
           include: [
