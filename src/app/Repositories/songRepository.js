@@ -55,6 +55,7 @@ class SongRepository {
       song = song.toJSON();
 
       song.owner = song.user;
+      song.owner.isFollowed = song.owner.isFollowed === 1 ? true : false;
       song.isLiked = song.isLiked === 1 ? true : false;
       song.nameGenre = song.genre.name;
 
