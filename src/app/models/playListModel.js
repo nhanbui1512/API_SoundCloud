@@ -19,6 +19,9 @@ const PlayList = (sequelize) => {
     updateAt: {
       type: DataTypes.DATE,
     },
+    thumbNail: {
+      type: DataTypes.STRING,
+    },
     createAtTimeFormat: {
       type: DataTypes.VIRTUAL,
       get() {
