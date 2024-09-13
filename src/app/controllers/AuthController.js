@@ -9,8 +9,21 @@ const NotFoundError = require('../errors/NotFoundError');
 
 const axios = require('axios');
 const userRepository = require('../Repositories/userRepository');
+const { createNewUserAuth } = require('../services/authService');
 
-// const mailService = require('../services/mailService');
+const getUserInfoFromFacebook = async (userAccessToken) => {
+  try {
+    const fields = 'id,name,email,picture,first_name,short_name,last_name';
+    const url = `https://graph.facebook.com/me?fields=${fields}&access_token=${userAccessToken}`;
+    const response = await axios.get(url);
+    const userInfo = response.data;
+
+    return userInfo;
+  } catch (error) {
+    console.error('Error fetching user information:', error);
+    return null;
+  }
+};
 
 class AuthController {
   async refreshToken(req, response, next) {
@@ -97,6 +110,40 @@ class AuthController {
       return response.status(200).json({ user: user, token: accessToken, refreshToken });
     } catch (error) {
       response.status(400).json({ message: 'Google token verification failed', error });
+    }
+  }
+
+  async loginWithFacebook(req, response) {
+    const { token } = req.body;
+    try {
+      const res = await getUserInfoFromFacebook(token);
+      if (res === null)
+        return response.status(400).json({ message: 'Facebook token verification failed', error });
+      const isExisted = await UserModel.findOne({
+        where: {
+          email: res.email,
+        },
+      });
+      if (isExisted === null) {
+        const result = await createNewUserAuth({
+          email: res.email,
+          userName: res.name,
+          picture: res.picture.data.url,
+          providerName: 'Facebook',
+          providerUserId: res.id,
+        });
+        return response.status(200).json(result);
+      }
+      const accessToken = token_require.GenerateAcessToken(isExisted);
+      const refreshToken = isExisted.refreshToken;
+
+      const user = isExisted.toJSON();
+      delete user.refreshToken;
+      delete user.password;
+
+      return response.status(200).json({ user, token: accessToken, refreshToken });
+    } catch (error) {
+      response.status(400).json({ message: 'Facebook token verification failed', error });
     }
   }
 }

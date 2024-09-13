@@ -92,4 +92,31 @@ router.post('/login', loginValidation, LoginController.checkLogin);
  */
 router.post('/google', AuthController.loginWithGoogle);
 
+/**
+ * @swagger
+
+ * /api/auth/facebook:
+ *   post:
+ *     summary: Login by Google
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ *             required:
+ *               - token
+ *     responses:
+ *       '200':
+ *          description: Successful
+ *       '404':
+ *          description: Not Found Data
+ *
+ */
+router.post('/facebook', AuthController.loginWithFacebook);
+
 module.exports = router;
