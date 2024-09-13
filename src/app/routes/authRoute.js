@@ -97,7 +97,7 @@ router.post('/google', AuthController.loginWithGoogle);
 
  * /api/auth/facebook:
  *   post:
- *     summary: Login by Google
+ *     summary: Login by Facebook
  *     tags: [Auth]
  *     requestBody:
  *       required: true
