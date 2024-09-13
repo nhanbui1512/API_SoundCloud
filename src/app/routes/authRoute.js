@@ -65,4 +65,31 @@ router.post('/refresh-token', AuthController.refreshToken);
 
 router.post('/login', loginValidation, LoginController.checkLogin);
 
+/**
+ * @swagger
+
+ * /api/auth/google:
+ *   post:
+ *     summary: Login by Google
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ *             required:
+ *               - token
+ *     responses:
+ *       '200':
+ *          description: Successful
+ *       '404':
+ *          description: Not Found Data
+ *
+ */
+router.post('/google', AuthController.loginWithGoogle);
+
 module.exports = router;

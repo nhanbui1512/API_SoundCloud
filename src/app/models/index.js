@@ -16,6 +16,7 @@ const SongPlaylist = require('./SongPlaylistModel');
 const Comment = require('./commentModel');
 const Notification = require('./notificationModel');
 const NotiType = require('./notiTypeModel');
+const authProvider = require('./authProviderModel');
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ const FollowPlaylistModel = FollowPlaylist(sequelize);
 const SongPlaylistModel = SongPlaylist(sequelize);
 const RoleModel = Role(sequelize);
 const CommentModel = Comment(sequelize);
+const AuthProviderModel = authProvider(sequelize);
 
 const NotificationModel = Notification(sequelize);
 const NotiTypeModel = NotiType(sequelize);
@@ -137,6 +139,9 @@ CommentModel.belongsTo(CommentModel, { as: 'Parent', foreignKey: 'parentId', onD
 NotiTypeModel.hasMany(NotificationModel, { onDelete: 'CASCADE' });
 NotificationModel.belongsTo(NotiTypeModel, { onDelete: 'CASCADE' });
 
+UserModel.hasOne(AuthProviderModel);
+AuthProviderModel.belongsTo(UserModel);
+
 module.exports = {
   sequelize,
   UserModel: sequelize.models.users,
@@ -151,4 +156,5 @@ module.exports = {
   CommentModel: sequelize.models.comments,
   NotificationModel: sequelize.models.notifications,
   NotiTypeModel: sequelize.models.noti_types,
+  AuthProviderModel: sequelize.models.auth_providers,
 };
