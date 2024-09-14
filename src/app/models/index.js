@@ -139,8 +139,8 @@ CommentModel.belongsTo(CommentModel, { as: 'Parent', foreignKey: 'parentId', onD
 NotiTypeModel.hasMany(NotificationModel, { onDelete: 'CASCADE' });
 NotificationModel.belongsTo(NotiTypeModel, { onDelete: 'CASCADE' });
 
-UserModel.hasOne(AuthProviderModel);
-AuthProviderModel.belongsTo(UserModel);
+UserModel.hasOne(AuthProviderModel, { onDelete: 'CASCADE' });
+AuthProviderModel.belongsTo(UserModel, { onDelete: 'CASCADE' });
 
 module.exports = {
   sequelize,

@@ -27,7 +27,7 @@ const createNewUserAuth = async ({ email, userName, picture, providerUserId, pro
     delete userData.refreshToken;
     delete userData.password;
 
-    return { userData, accessToken, refreshToken };
+    return { user: userData, token: accessToken, refreshToken };
   } catch (error) {
     throw error;
   }

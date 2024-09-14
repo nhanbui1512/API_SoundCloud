@@ -55,7 +55,7 @@ class AuthController {
     try {
       const { token } = req.body;
       const res = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${token}`);
-      const { email, name, picture } = res.data;
+      const { email, name, picture, sub } = res.data;
       const isExisted = await UserModel.findOne({
         where: {
           email: email,
@@ -63,30 +63,14 @@ class AuthController {
       });
       if (isExisted === null) {
         // create account
-        const newUser = await userRepository.create({
+        const result = await createNewUserAuth({
           email: email,
-          password: null, // hash user data to password here
-          avatar: picture,
           userName: name,
-        });
-
-        await AuthProviderModel.create({
-          userId: newUser.id,
+          picture: picture,
           providerName: 'Google',
-          providerUserId: res.data.sub,
+          providerUserId: sub,
         });
-
-        const refreshToken = token_require.GenerateRefreshToken(user);
-        const accessToken = token_require.GenerateAcessToken(user);
-        newUser.refreshToken = refreshToken;
-
-        await newUser.save();
-
-        return response.status(200).json({
-          token: accessToken,
-          refreshToken: refreshToken,
-          user: newUser,
-        });
+        return response.status(200).json(result);
       }
 
       // generate a accesstoken

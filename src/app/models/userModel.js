@@ -42,6 +42,7 @@ const User = (sequelize) => {
       get() {
         const fileName = this.getDataValue('avatar');
         if (fileName === null) return fileName;
+        if (fileName.startsWith('https:')) return fileName;
         if (fileName.includes('res.cloudinary.com')) return fileName;
         return `${process.env.domain}/uploads/images/${fileName}`;
         // return fileName;
