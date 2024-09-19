@@ -8,6 +8,7 @@ const cors = require('cors');
 const errorHandle = require('./app/middlewares/errorHandler');
 const { sequelize } = require('./app/models');
 const { swaggerDocs } = require('./config/swagger');
+const { logToFile } = require('./app/until/logsWriter');
 const PORT = process.env.PORT || 3000;
 require('./config/cloudinaryService'); // config dinary
 
@@ -25,6 +26,7 @@ sequelize
   .authenticate()
   .then(() => {
     console.log('Connected to the database successfully');
+    if (!process.env.dev) logToFile('Connect to database successfully');
     sequelize
       .sync({ alter: true })
       .then(() => {
@@ -32,10 +34,25 @@ sequelize
       })
       .catch((err) => {
         console.log(err);
+        if (!process.env.dev) {
+          logToFile(err);
+        }
       });
   })
   .catch((err) => {
     console.log('Connected to the database unsuccessfully');
+    if (!process.env.dev) {
+      const errorDetails = `
+      Lỗi: ${err.name}
+      Thông điệp: ${err.message}
+      Mã lỗi: ${err.original?.errno || 'N/A'}
+      SQL Message: ${err.original?.sqlMessage || 'N/A'}
+      Host: ${err.original?.address || 'N/A'}
+      Port: ${err.original?.port || 'N/A'}
+      Stack Trace: ${err.stack}
+`;
+      logToFile(errorDetails);
+    }
   });
 
 app.use(express.static(path.join(__dirname, '/Public')));

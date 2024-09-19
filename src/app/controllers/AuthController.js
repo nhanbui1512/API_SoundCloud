@@ -3,12 +3,11 @@ const jwt = require('jsonwebtoken');
 const token_require = require('../until/token');
 
 const { StatusCodes } = require('http-status-codes');
-const { UserModel, AuthProviderModel } = require('../models');
+const { UserModel } = require('../models');
 const AuthorizeError = require('../errors/AuthorizeError');
 const NotFoundError = require('../errors/NotFoundError');
 
 const axios = require('axios');
-const userRepository = require('../Repositories/userRepository');
 const { createNewUserAuth } = require('../services/authService');
 
 const getUserInfoFromFacebook = async (userAccessToken) => {

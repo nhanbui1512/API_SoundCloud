@@ -18,8 +18,6 @@ const Notification = require('./notificationModel');
 const NotiType = require('./notiTypeModel');
 const authProvider = require('./authProviderModel');
 
-dotenv.config();
-
 const sequelize = new Sequelize(local.dbName, local.userName, local.password, local.config);
 
 const UserModel = User(sequelize);
