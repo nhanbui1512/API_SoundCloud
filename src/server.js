@@ -62,8 +62,6 @@ swaggerDocs(app);
 
 app.use(errorHandle);
 
-/// login with gg
-
 app.listen(PORT, () => {
   console.log(`app is listening on http://localhost:${PORT}`);
   console.log(`API documentation at : http://localhost:${PORT}/docs`);
