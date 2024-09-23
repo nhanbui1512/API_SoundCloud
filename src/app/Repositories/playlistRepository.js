@@ -312,6 +312,12 @@ class PlaylistRepository {
                   ),
                   'likeCount',
                 ],
+                [
+                  sequelize.literal(
+                    `(select count(*) from comments where songId = \`followed_playlists->songs\`.id)`,
+                  ),
+                  'commentCount',
+                ],
               ],
             },
             include: {
