@@ -23,6 +23,10 @@ class SongRepository {
               ),
               'isLiked',
             ],
+            [
+              sequelize.literal(`(SELECT COUNT (*) FROM comments WHERE songId = ${songId})`),
+              'commentCount',
+            ],
           ],
         },
         include: [
@@ -128,6 +132,10 @@ class SongRepository {
                 `(SELECT CASE WHEN EXISTS (SELECT 1 FROM userlikesongs WHERE userId = ${userId} AND songId = songs.id) THEN TRUE ELSE FALSE END AS result)`,
               ),
               'isLiked',
+            ],
+            [
+              sequelize.literal(`(SELECT COUNT (*) FROM comments WHERE songId = songs.id)`),
+              'commentCount',
             ],
           ],
         },
@@ -294,6 +302,10 @@ class SongRepository {
               [
                 sequelize.literal(`(SELECT COUNT (*) FROM userlikesongs WHERE songId = user.id )`),
                 'likeCount',
+              ],
+              [
+                sequelize.literal(`(SELECT COUNT (*) FROM comments WHERE songId = user.id)`),
+                'commentCount',
               ],
             ],
           },
