@@ -64,6 +64,20 @@ class PlaylistRepository {
               {
                 model: GenreModel,
               },
+              {
+                model: UserModel,
+                attributes: {
+                  exclude: ['password', 'refreshToken'],
+                  include: [
+                    [
+                      sequelize.literal(
+                        `(SELECT CASE WHEN EXISTS (SELECT 1 FROM follow_users WHERE userId = ${userId} AND followed = user.id) THEN TRUE ELSE FALSE END AS result)`,
+                      ),
+                      'isFollowed',
+                    ],
+                  ],
+                },
+              },
             ],
 
             attributes: {
@@ -92,6 +106,7 @@ class PlaylistRepository {
         playlist.songs.forEach((song) => {
           delete song.song_playlist;
           song.isLiked = song.isLiked === 1 ? true : false;
+          song.user.isFollowed = song.user?.isFollowed === 1 ? true : false;
           song.owner = song.user;
           delete song.user;
         });
