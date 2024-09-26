@@ -3,6 +3,7 @@ const { SongModel, sequelize, UserModel, GenreModel, UserLikeSongModel } = requi
 const { multiSqlizeToJSON } = require('../until/sequelize');
 const NotFoundError = require('../errors/NotFoundError');
 const { paginateArray } = require('../until/arrays');
+const pagination = require('../until/paginations');
 
 class SongRepository {
   constructor() {}
@@ -321,6 +322,7 @@ class SongRepository {
       if (user === null) throw new NotFoundError({ message: 'Not found user' });
 
       var songs = multiSqlizeToJSON(user.user);
+      const total = songs.length;
       songs = songs.map((song) => {
         song.owner = song.user;
         delete song.user;
@@ -332,7 +334,9 @@ class SongRepository {
       });
 
       songs = paginateArray(songs, page, perPage);
-      return songs;
+      var paging = pagination({ page, perPage, count: total });
+
+      return { ...paging, docs: songs };
     } catch (error) {
       throw error;
     }
