@@ -15,3 +15,5 @@
     at async Sequelize.authenticate (D:\CODE\SoundCloud\BE_SoudCloud\node_modules\sequelize\lib\sequelize.js:457:5)
 
 2024-09-19T03:10:06.767Z - Connect to database successfully
+2024-09-20T15:06:28.153Z - Connect to database successfully
+2024-10-04T02:06:18.541Z - Connect to database successfully

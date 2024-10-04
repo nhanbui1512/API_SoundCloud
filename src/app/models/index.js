@@ -17,6 +17,7 @@ const Comment = require('./commentModel');
 const Notification = require('./notificationModel');
 const NotiType = require('./notiTypeModel');
 const authProvider = require('./authProviderModel');
+const Privacy = require('./privacyModel');
 
 const sequelize = new Sequelize(local.dbName, local.userName, local.password, local.config);
 
@@ -31,6 +32,7 @@ const SongPlaylistModel = SongPlaylist(sequelize);
 const RoleModel = Role(sequelize);
 const CommentModel = Comment(sequelize);
 const AuthProviderModel = authProvider(sequelize);
+const PrivacyModel = Privacy(sequelize);
 
 const NotificationModel = Notification(sequelize);
 const NotiTypeModel = NotiType(sequelize);
@@ -140,6 +142,9 @@ NotificationModel.belongsTo(NotiTypeModel, { onDelete: 'CASCADE' });
 UserModel.hasOne(AuthProviderModel, { onDelete: 'CASCADE' });
 AuthProviderModel.belongsTo(UserModel, { onDelete: 'CASCADE' });
 
+SongModel.hasOne(PrivacyModel, { onDelete: 'CASCADE' });
+PrivacyModel.hasMany(SongModel, { onDelete: 'CASCADE' });
+
 module.exports = {
   sequelize,
   UserModel: sequelize.models.users,
@@ -155,4 +160,5 @@ module.exports = {
   NotificationModel: sequelize.models.notifications,
   NotiTypeModel: sequelize.models.noti_types,
   AuthProviderModel: sequelize.models.auth_providers,
+  PrivacyModel: sequelize.models.privacies,
 };
