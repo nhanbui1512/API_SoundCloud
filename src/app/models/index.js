@@ -142,8 +142,8 @@ NotificationModel.belongsTo(NotiTypeModel, { onDelete: 'CASCADE' });
 UserModel.hasOne(AuthProviderModel, { onDelete: 'CASCADE' });
 AuthProviderModel.belongsTo(UserModel, { onDelete: 'CASCADE' });
 
-SongModel.hasOne(PrivacyModel, { onDelete: 'CASCADE' });
 PrivacyModel.hasMany(SongModel, { onDelete: 'CASCADE' });
+SongModel.belongsTo(PrivacyModel, { onDelete: 'CASCADE' });
 
 module.exports = {
   sequelize,
