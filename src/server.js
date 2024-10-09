@@ -1,5 +1,8 @@
 const express = require('express');
+const dotenv = require('dotenv');
 require('express-async-errors');
+
+dotenv.config();
 
 const app = express();
 const path = require('path');
