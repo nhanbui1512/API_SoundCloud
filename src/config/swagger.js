@@ -17,7 +17,6 @@ const options = {
 
 const swaggerSpec = swaggerJsdoc(options);
 
-// console.log(path.join(__dirname, '/Public'));
 function swaggerDocs(app) {
   // Swagger Page
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
