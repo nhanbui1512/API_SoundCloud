@@ -1,5 +1,12 @@
 const { Op } = require('sequelize');
-const { SongModel, sequelize, UserModel, GenreModel, UserLikeSongModel } = require('../models');
+const {
+  SongModel,
+  sequelize,
+  UserModel,
+  GenreModel,
+  UserLikeSongModel,
+  PrivacyModel,
+} = require('../models');
 const { multiSqlizeToJSON } = require('../until/sequelize');
 const NotFoundError = require('../errors/NotFoundError');
 const { paginateArray } = require('../until/arrays');
@@ -74,11 +81,21 @@ class SongRepository {
   //#endregion
 
   //#region  get Songs
-  async getSongs({ page = 1, perPage = 10, userId = null, search, sort, suffle = false }) {
+  async getSongs({
+    page = 1,
+    perPage = 10,
+    userId = null,
+    search,
+    sort,
+    suffle = false,
+    privacy = 1, //? 1 is Public and 2 is Private
+  }) {
     const offset = (page - 1) * perPage;
 
     //#region  search
-    var condition = {};
+    var condition = {
+      privacyId: privacy,
+    };
     if (search)
       condition = {
         [Op.or]: [
@@ -94,6 +111,7 @@ class SongRepository {
             },
           },
         ],
+        privacyId: privacy,
       };
     //#endregion
 
@@ -117,6 +135,12 @@ class SongRepository {
           },
           {
             model: GenreModel,
+            attributes: {
+              exclude: ['createAt', 'updateAt'],
+            },
+          },
+          {
+            model: PrivacyModel,
             attributes: {
               exclude: ['createAt', 'updateAt'],
             },
