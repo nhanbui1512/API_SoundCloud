@@ -19,3 +19,20 @@
 2024-10-04T02:06:18.541Z - Connect to database successfully
 2024-10-04T06:51:17.208Z - Connect to database successfully
 2024-10-07T09:03:58.104Z - Connect to database successfully
+2024-11-21T14:25:54.904Z - Connect to database successfully
+2024-11-28T08:25:28.565Z - 
+      Lỗi: SequelizeConnectionRefusedError
+      Thông điệp: 
+      Mã lỗi: N/A
+      SQL Message: N/A
+      Host: N/A
+      Port: N/A
+      Stack Trace: SequelizeConnectionRefusedError
+    at ConnectionManager.connect (H:\CODE\SoundCloud\BE\node_modules\sequelize\lib\dialects\mysql\connection-manager.js:92:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ConnectionManager._connect (H:\CODE\SoundCloud\BE\node_modules\sequelize\lib\dialects\abstract\connection-manager.js:222:24)
+    at async H:\CODE\SoundCloud\BE\node_modules\sequelize\lib\dialects\abstract\connection-manager.js:174:32
+    at async ConnectionManager.getConnection (H:\CODE\SoundCloud\BE\node_modules\sequelize\lib\dialects\abstract\connection-manager.js:197:7)
+    at async H:\CODE\SoundCloud\BE\node_modules\sequelize\lib\sequelize.js:305:26
+    at async Sequelize.authenticate (H:\CODE\SoundCloud\BE\node_modules\sequelize\lib\sequelize.js:457:5)
+

@@ -9,6 +9,8 @@ const NotFoundError = require('../errors/NotFoundError');
 
 const axios = require('axios');
 const { createNewUserAuth } = require('../services/authService');
+const transporter = require('../services/mailService');
+const { x } = require('joi');
 
 const getUserInfoFromFacebook = async (userAccessToken) => {
   try {
@@ -128,6 +130,32 @@ class AuthController {
     } catch (error) {
       response.status(400).json({ message: 'Facebook token verification failed', error });
     }
+  }
+
+  async forgotPassword(request, response) {
+    const { email } = request.body;
+    const isExisted = await UserModel.findOne({
+      where: {
+        email: email,
+      },
+    });
+    if (isExisted === null) throw new NotFoundError({ message: 'Not found user' });
+
+    // Cấu hình email
+    const mailOptions = {
+      from: 'buithiennhan0345@gmail.com',
+      to: email,
+      subject: 'Test Email',
+      text: 'This is a test email sent using Node.js and Nodemailer!',
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        return console.log(error);
+      }
+      console.log('Email sent: ' + info.response);
+    });
+    return response.status(200).json({ email });
   }
 }
 

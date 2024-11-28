@@ -119,4 +119,31 @@ router.post('/google', AuthController.loginWithGoogle);
  */
 router.post('/facebook', AuthController.loginWithFacebook);
 
+/**
+ * @swagger
+
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Request forgot password
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *             required:
+ *               - email
+ *     responses:
+ *       '200':
+ *          description: Successful
+ *       '404':
+ *          description: Not Found Data
+ *
+ */
+router.post('/forgot-password', AuthController.forgotPassword);
+
 module.exports = router;
